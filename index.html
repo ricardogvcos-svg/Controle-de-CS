@@ -283,8 +283,6 @@
     </div>
   </header>
 
-  <div class="alert-banner" id="alertaGeral"></div>
-
   <div class="filter-bar">
     <div class="filter-group">
       <label>Buscar</label>
@@ -313,6 +311,7 @@
 
   <!-- ═══════════ TAB 1 — VISÃO GERAL & COLETIVO ═══════════ -->
   <div id="tab-visao" class="tab-content active">
+    <div class="alert-banner small" id="alertaTab1"></div>
     <div class="section-title">1.1 – 1.3 · Indicadores Coletivos</div>
     <div class="kpi-grid" id="kpiVisaoGeral"></div>
 
@@ -333,6 +332,7 @@
 
   <!-- ═══════════ TAB 2 — ANÁLISE INDIVIDUAL & PDI ═══════════ -->
   <div id="tab-individual" class="tab-content">
+    <div class="alert-banner small" id="alertaTab2"></div>
     <div class="csm-selector" id="csmSelectorIndividual"></div>
     <div id="individualConteudo"></div>
   </div>
@@ -340,6 +340,7 @@
   <!-- ═══════════ TAB 3 — TICKETS PÓS-VENDA ═══════════ -->
   <div id="tab-tickets" class="tab-content">
     <div class="alert-banner small" id="coberturaTicketsBanner"></div>
+    <div class="alert-banner small" id="alertaTab3"></div>
 
     <div class="section-title">3.3 · Indicadores Gerais de Tickets</div>
     <div class="kpi-grid" id="kpiTickets"></div>
@@ -367,6 +368,31 @@
 
     <div class="section-title">3.4 · Tabela Operacional de Rastreamento</div>
     <div class="section-sub">Histórico recente e mapeado — clique nos cabeçalhos para ordenar</div>
+    <div class="filter-bar" style="position:static;margin-bottom:16px">
+      <div class="filter-group">
+        <label>Status</label>
+        <select class="filter-select" id="filtroStatusTabela">
+          <option value="Todos">Todos</option>
+          <option value="Fechado">Fechado</option>
+          <option value="Aberto">Aberto</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Tipo</label>
+        <select class="filter-select" id="filtroTipoTabela">
+          <option value="Todos">Todos</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Reativo">Reativo</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Canal</label>
+        <select class="filter-select" id="filtroCanalTabela"><option value="Todos">Todos</option></select>
+      </div>
+      <div class="filter-tag">
+        <span class="chip" id="chipResumoTabela"></span>
+      </div>
+    </div>
     <div class="card" style="padding:0">
       <div class="table-wrap">
         <table id="mainTable">
@@ -454,7 +480,7 @@ function mesLabel(key){
 /* ══════════════════════════════════════════════════════════════════
    ESTADO GLOBAL DE FILTROS
    ══════════════════════════════════════════════════════════════════ */
-const state = { csm: 'Todos', mes: 'Todos', busca: '', csmIndividual: 'Jaqueline', sortKey: null, sortDir: 1, page: 1 };
+const state = { csm: 'Todos', mes: 'Todos', busca: '', csmIndividual: 'Jaqueline', sortKey: null, sortDir: 1, page: 1, statusTabela: 'Todos', tipoTabela: 'Todos', canalTabela: 'Todos' };
 const PER_PAGE = 25;
 
 function carteiraFiltrada(csmOverride){
@@ -580,6 +606,10 @@ function limparFiltros(){
   document.getElementById('filtroCSM').value='Todos';
   document.getElementById('filtroMes').value='Todos';
   document.getElementById('buscaInput').value='';
+  state.statusTabela='Todos'; state.tipoTabela='Todos'; state.canalTabela='Todos';
+  document.getElementById('filtroStatusTabela').value='Todos';
+  document.getElementById('filtroTipoTabela').value='Todos';
+  document.getElementById('filtroCanalTabela').value='Todos';
   renderTudo();
 }
 
@@ -595,6 +625,14 @@ function initFiltros(){
 
   document.getElementById('buscaInput').addEventListener('input', e => { state.busca = e.target.value; state.page=1; renderTudo(); });
 
+  // Filtros exclusivos da tabela 3.4 — não afetam KPIs/gráficos, só a tabela em si
+  const canais = [...new Set(RAW_TICKETS.map(t=>t.canal).filter(Boolean))].sort();
+  const selCanalTabela = document.getElementById('filtroCanalTabela');
+  canais.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; selCanalTabela.appendChild(o); });
+  document.getElementById('filtroStatusTabela').addEventListener('change', e => { state.statusTabela = e.target.value; state.page=1; renderTabelaTickets(); });
+  document.getElementById('filtroTipoTabela').addEventListener('change', e => { state.tipoTabela = e.target.value; state.page=1; renderTabelaTickets(); });
+  selCanalTabela.addEventListener('change', e => { state.canalTabela = e.target.value; state.page=1; renderTabelaTickets(); });
+
   document.querySelectorAll('#mainTable thead th[data-key]').forEach(th => {
     th.addEventListener('click', () => {
       const key = th.dataset.key;
@@ -606,22 +644,35 @@ function initFiltros(){
   });
 }
 
-function renderAlertaGeral(){
+// Cada aviso vive na aba onde faz sentido, em vez de um card único genérico no topo.
+function renderAlertaTab1(){
+  const el = document.getElementById('alertaTab1');
   const dupCnpj = {};
   RAW_CARTEIRA.forEach(c => { if(c.CNPJ){ (dupCnpj[c.CNPJ] = dupCnpj[c.CNPJ]||new Set()).add(c.csm); } });
   const violacoes = Object.entries(dupCnpj).filter(([,s])=>s.size>1);
-  const modoTxt = DATA_MODE==='live'
-    ? `<li><strong>Modo ao vivo:</strong> dados atualizados automaticamente via Power Automate + GitHub Action. Última sincronização: <strong>${DATA_TIMESTAMP||'—'}</strong>.</li>`
-    : `<li><strong>Modo demonstração/offline:</strong> não foi possível carregar o JSON ao vivo (<code>data/ns_dashboard_data_live.json</code>) — exibindo o snapshot embutido de <strong>22/07/2026</strong>. Publique o pipeline (Power Automate → GitHub Action) para ativar atualização automática.</li>`;
+  if(!violacoes.length){ el.style.display='none'; return; }
+  el.style.display='';
+  el.innerHTML = `<strong>⚠ Governança de carteira:</strong> ${violacoes.length} cliente(s) aparecem na carteira de mais de um CSM (${violacoes.map(([cnpj,s])=>`${cnpj}: ${[...s].join(' / ')}`).join('; ')}) — viola a regra "1 Cliente = 1 CSM" do Guia de Boas Práticas (ver Glossário). Recomenda-se revisão manual.`;
+}
+
+function renderAlertaTab2(){
+  document.getElementById('alertaTab2').innerHTML = `<strong>⚠ Metodologia de Score:</strong> a coluna NPS não está preenchida em nenhum registro da carteira atual — por isso não entra no cálculo do Score Consolidado nem do BSC até que passe a ser coletada (ver Glossário, item "NPS").`;
+}
+
+function primeiraDataResponsavel(nome, excluir){
+  const datas = RAW_TICKETS
+    .filter(t => excluir ? t.responsavel!==nome : t.responsavel===nome)
+    .map(t=>parseDataBR(t.dataAbertura)).filter(Boolean);
+  if(!datas.length) return null;
+  return new Date(Math.min(...datas));
+}
+
+function renderAlertaTab3Extra(){
   const jaquelineTk = RAW_TICKETS.filter(t=>t.responsavel==='Jaqueline').length;
-  document.getElementById('alertaGeral').innerHTML = `
-    <strong>⚠ Sinalizações de governança de dados:</strong>
-    <ul>
-      ${modoTxt}
-      ${violacoes.length ? `<li><strong>${violacoes.length} cliente(s) aparecem na carteira de mais de um CSM</strong> (${violacoes.map(([cnpj,s])=>`${cnpj}: ${[...s].join(' / ')}`).join('; ')}) — viola a regra "1 cliente = 1 CSM" do Guia de Boas Práticas. Recomenda-se revisão manual.</li>` : ''}
-      <li>Coluna NPS não está preenchida em nenhum registro da carteira atual — não entra no cálculo de Score/BSC até que passe a ser coletada.</li>
-      <li><strong>${jaquelineTk} de ${RAW_TICKETS.length} tickets (${(jaquelineTk/RAW_TICKETS.length*100).toFixed(0)}%)</strong> estão registrados sob a responsável Jaqueline, bem acima de Luciana/Stefany — vale confirmar se reflete a operação real ou um padrão de preenchimento do campo "Responsável" no formulário de tickets.</li>
-    </ul>`;
+  const pct = (jaquelineTk/RAW_TICKETS.length*100).toFixed(0);
+  const inicioOutras = primeiraDataResponsavel('Jaqueline', true);
+  const contextoData = inicioOutras ? mesLabel((inicioOutras.getMonth()+1).toString().padStart(2,'0')+'/'+inicioOutras.getFullYear()) : null;
+  document.getElementById('alertaTab3').innerHTML = `<strong>⚠ Concentração histórica em Jaqueline:</strong> ${jaquelineTk} de ${RAW_TICKETS.length} tickets (${pct}%) estão sob sua responsabilidade. Isso reflete o histórico real da operação${contextoData?`: até o mês anterior a <strong>${contextoData}</strong> ela era a única responsável por tickets no sistema — Luciana e Stefany só passam a aparecer a partir de <strong>${contextoData}</strong>, quando a carteira foi dividida em 3`:''}. Use o filtro de mês acima para comparar períodos antes/depois da divisão.`;
 }
 
 function renderChipResumo(){
@@ -633,8 +684,11 @@ function renderChipResumo(){
 function renderTudo(){
   renderChipResumo();
   renderVisaoGeral();
+  renderAlertaTab1();
   renderIndividual();
+  renderAlertaTab2();
   renderTicketsTab();
+  renderAlertaTab3Extra();
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -986,7 +1040,12 @@ function renderTicketsTab(){
 }
 
 function renderTabelaTickets(){
-  let tks = [...ticketsFiltrados()];
+  let tks = ticketsFiltrados().filter(t =>
+    (state.statusTabela==='Todos' || t.status===state.statusTabela) &&
+    (state.tipoTabela==='Todos' || t.tipo===state.tipoTabela) &&
+    (state.canalTabela==='Todos' || t.canal===state.canalTabela)
+  );
+  document.getElementById('chipResumoTabela').textContent = `${tks.length} de ${ticketsFiltrados().length} tickets do filtro geral`;
   if(state.sortKey){
     tks.sort((a,b) => {
       let av=a[state.sortKey], bv=b[state.sortKey];
@@ -1121,7 +1180,6 @@ function atualizarBadgeFonte(){
   initFiltros();
   initCsmSelector();
   atualizarBadgeFonte();
-  renderAlertaGeral();
   renderTudo();
   window.addEventListener('resize', drawBCG);
 })();
