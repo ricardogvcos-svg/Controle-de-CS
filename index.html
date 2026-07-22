@@ -881,11 +881,20 @@ function renderPDI(csm, cart){
 }
 function healthColor(h){ return {'Saudável':'#157F3C','Atenção':'#A16207','Crítico':'#CC6E00','Perdido':'#D6303C','Sem Info':'#5B6B85'}[h]||'#5B6B85'; }
 
+// Mapeia um valor para posição % no eixo garantindo que o benchmark caia EXATAMENTE em 50%
+// (mesma linha divisória usada pelo classifyBCG) — evita que o ponto visual discorde do texto.
+function escalaComBenchmark(valor, benchmark, minimo, maximoAcima){
+  if(valor <= benchmark){
+    return (valor/benchmark) * 50;
+  }
+  return 50 + ((valor-benchmark)/(maximoAcima-benchmark)) * 50;
+}
+
 function drawBCG(){
   const el = document.getElementById('bcgQuad');
   if(!el) return;
-  const w = el.clientWidth, h = el.clientHeight;
-  const maxSize = Math.max(...CSMS.map(c=>RAW_CARTEIRA.filter(x=>x.csm===c).length)) * 1.3;
+  const tamanhos = CSMS.map(c=>RAW_CARTEIRA.filter(x=>x.csm===c).length);
+  const xTeto = Math.max(BCG_SIZE_BENCH*2, Math.max(...tamanhos)*1.15);
   let html = `<div class="bcg-axis-x"></div><div class="bcg-axis-y"></div>
     <div class="bcg-label" style="top:6px;left:6px">Interrogação</div>
     <div class="bcg-label" style="top:6px;right:6px">Estrela</div>
@@ -893,8 +902,10 @@ function drawBCG(){
     <div class="bcg-label" style="bottom:6px;right:6px">Pilar de Operação</div>`;
   CSMS.forEach(csm => {
     const s = computeScoreCSM(csm);
-    const x = Math.min(96, Math.max(4, (s.carteiraSize/maxSize)*100));
-    const y = Math.min(96, Math.max(4, 100 - (s.score/100)*100));
+    const xRaw = escalaComBenchmark(s.carteiraSize, BCG_SIZE_BENCH, 0, xTeto);
+    const yRaw = 100 - escalaComBenchmark(s.score, BCG_SCORE_BENCH, 0, 100);
+    const x = Math.min(96, Math.max(4, xRaw));
+    const y = Math.min(96, Math.max(4, yRaw));
     const isActive = csm === state.csmIndividual;
     html += `<div class="bcg-dot" style="left:${x}%;top:${y}%;background:${CSM_COLOR[csm]};${isActive?'width:22px;height:22px;box-shadow:0 0 0 5px rgba(255,138,0,0.35)':''}"></div>
       <div class="bcg-dot-label" style="left:${x}%;top:${y}%;color:${CSM_COLOR_TEXT[csm]}">${csm}</div>`;
@@ -1027,6 +1038,16 @@ const GLOSSARIO = [
   ['Matriz BCG (Portfólio Humano)','<strong>Adaptação deste dashboard</strong> da matriz Boston Consulting Group para avaliar carteiras de CSM. Eixo X = tamanho da carteira (benchmark 35 contas, ponto médio da meta 30–40). Eixo Y = Score Consolidado (benchmark 75). Quadrantes: <strong>Estrela</strong> (carteira grande + score alto), <strong>Pilar de Operação</strong> (carteira grande + score abaixo do benchmark), <strong>Interrogação</strong> (carteira pequena + score alto, capacidade ociosa), <strong>Abacaxi</strong> (carteira pequena + score baixo, intervenção prioritária).'],
   ['Matriz Eisenhower (Priorização Operacional)','<strong>Adaptação deste dashboard</strong> por cliente: <strong>Urgente</strong> = Risco de Churn Alto/Churn OU Health Score Crítico/Perdido. <strong>Importante</strong> = Status CS = ATIVO. Quadrantes: Fazer Agora (urgente+importante), Planejar (importante, não urgente), Delegar/Acompanhar (urgente, não estratégico), Arquivar (nenhum dos dois).'],
   ['Score Consolidado / Score de Performance Unificado','<strong>Metodologia deste dashboard</strong>, 0–100: 40% Saúde da Carteira (Saudável=1,0 / Atenção=0,5 / Crítico=0,15 / Perdido=0) + 25% SLA de tickets (100 se ≤5 dias, decresce acima disso) + 20% Taxa de Resolução de tickets (100% = atingir meta de 90%) + 15% Risco de Churn controlado (Baixo=1,0 / Médio=0,5 / Alto=0,1 / Churn=0). Componentes sem dado suficiente no período filtrado são excluídos e o peso redistribuído entre os demais — nunca estimado.'],
+  ['Score Médio da Equipe','Indicador exibido na Visão Geral & Coletivo (item 1.3) que resume, em um único número de 0 a 100, a saúde geral da operação de CS como um todo — e não de uma CSM isolada. É calculado pela <strong>média simples</strong> dos 3 Score Consolidados (Jaqueline + Luciana + Stefany, dividido por 3). Não tem peso por tamanho de carteira: cada CSM conta igual no cálculo, independentemente de quantos clientes atende. Para performance individual, sempre usar o Score Consolidado da própria CSM, nunca o Score Médio da Equipe.'],
+  ['Completude','Percentual de quão preenchida está a carteira de uma CSM em relação à meta da NewSun de 30–40 contas (Guia de Boas Práticas). Ex: uma CSM com 36 contas está em ~90% da meta máxima (36/40). Mede capacidade — não mede saúde nem performance. Completude baixa pode indicar capacidade ociosa; acima de 100% indica carteira além da meta recomendada.'],
+  ['Importância','Percentual que a carteira de uma CSM representa dentro do total de clientes da empresa (as 3 carteiras somadas). Mede peso/volume operacional — não mede performance. Uma CSM pode ter Importância alta (carteira grande) e ainda assim Score Consolidado baixo (carteira com muitos clientes em risco); é justamente esse cruzamento que a Matriz BCG (Portfólio Humano) resume em uma classificação única.'],
+  ['Meta SMART','Metodologia para escrever metas e planos de desenvolvimento (PDI) de forma clara e cobrável. Sigla de cinco critérios que toda meta bem definida deve atender: <strong>S</strong>pecific (específica), <strong>M</strong>easurable (mensurável), <strong>A</strong>chievable (atingível), <strong>R</strong>elevant (relevante) e <strong>T</strong>ime-bound (com prazo). Recomendada para estruturar as ações de PDI da seção "Parecer do Gestor" de cada CSM.'],
+  ['Logo Churn','Perda total de um cliente ("logo" = a marca/razão social como um todo) — diferente de uma redução parcial de contrato, downgrade ou perda de apenas uma UC. É a métrica mais severa de churn porque representa 100% da receita daquele cliente perdida de uma vez, e por isso a perspectiva Financeira do BSC trata a mitigação de Logo Churn como prioridade sobre outras formas de queda de receita.'],
+  ['PV','Pós-Venda — fluxo de atendimento e sustentação estruturado que ocorre a partir da assinatura do contrato. É a origem dos tickets analisados na aba "Tickets Pós-Venda" deste dashboard.'],
+  ['PDI','Plano de Desenvolvimento Individual — roteiro formal com metas SMART voltado à correção de lacunas de performance ou aceleração de competências da CSM. Alimentado pelas ações prioritárias e observações reais da carteira, na seção 2.7 deste dashboard.'],
+  ['TT / Titularidade','Transferência de Titularidade — processo formal de transferência jurídica da conta junto à distribuidora para o nome do grupo NewSun, pré-requisito para a injeção regulamentada de créditos de energia.'],
+  ['QBR','Quarterly Business Review — reunião trimestral estruturada com clientes corporativos para demonstrar ROI e economia gerada pela geração distribuída, prevista na cadência de contato da fase de Expansão (90d+) do Guia de Boas Práticas.'],
+  ['SBI','Situation-Behavior-Impact — modelo de feedback estruturado (Situação, Comportamento, Impacto) recomendado para guiar as conversas de PDI entre gestor e CSM de forma factual, sem julgamento de caráter.'],
   ['BSC (Balanced Scorecard)','Metodologia de gestão por 4 perspectivas clássicas (Financeira, Clientes, Processos, Aprendizado), adaptada aqui para 5, incluindo <strong>Internos</strong> (carga operacional). Cada perspectiva recebe status Alinhado / Atenção / Fora da Meta / Sem Dado Suficiente com base nas metas oficiais da NewSun (SLA ≤5d, resolução ≥90%, carteira 30–40 contas, financeiro ativo).'],
   ['WSB','Weighted Score Backlog — fórmula de priorização usada no Plano de Execução 28 Dias do Squad CS: (Impacto Cliente × 3) + (Volume × 2) + (Risco Financeiro × 2) + (Risco Reputacional × 2) + (Facilidade × 1) − Esforço.'],
   ['RACI','Responsible, Accountable, Consulted, Informed — matriz de responsabilidades usada na governança do Squad CS.'],
