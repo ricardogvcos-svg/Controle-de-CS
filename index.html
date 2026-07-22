@@ -545,7 +545,7 @@ function classifyBCG(size, score){
   const grande = size >= BCG_SIZE_BENCH;
   const alto = score >= BCG_SCORE_BENCH;
   if(grande && alto) return { nome:'Estrela', cor:'#157F3C', acao:'Manter cadência e usar como modelo de replicação para o time.' };
-  if(grande && !alto) return { nome:'Vaca Leiteira', cor:'#072C58', acao:'Carteira grande mas com sinais de atenção — estabilizar saúde antes de crescer mais.' };
+  if(grande && !alto) return { nome:'Pilar de Operação', cor:'#072C58', acao:'Carteira grande mas com sinais de atenção — estabilizar saúde antes de crescer mais.' };
   if(!grande && alto) return { nome:'Interrogação', cor:'#CC6E00', acao:'Carteira enxuta e saudável — tem capacidade ociosa para receber mais contas.' };
   return { nome:'Abacaxi', cor:'#D6303C', acao:'Carteira pequena e com problemas de saúde — intervenção prioritária do gestor.' };
 }
@@ -890,7 +890,7 @@ function drawBCG(){
     <div class="bcg-label" style="top:6px;left:6px">Interrogação</div>
     <div class="bcg-label" style="top:6px;right:6px">Estrela</div>
     <div class="bcg-label" style="bottom:6px;left:6px">Abacaxi</div>
-    <div class="bcg-label" style="bottom:6px;right:6px">Vaca Leiteira</div>`;
+    <div class="bcg-label" style="bottom:6px;right:6px">Pilar de Operação</div>`;
   CSMS.forEach(csm => {
     const s = computeScoreCSM(csm);
     const x = Math.min(96, Math.max(4, (s.carteiraSize/maxSize)*100));
@@ -1024,7 +1024,7 @@ const GLOSSARIO = [
   ['Cross-sell','Oferta de produtos/serviços complementares a um cliente já ativo (ex: novas UCs).'],
   ['MRR','Monthly Recurring Revenue — receita recorrente mensal gerada pela base de clientes ativos; impactada diretamente por churn e upgrades.'],
   ['P0 / P1 / P2 / P3 / P4','Escala de prioridade de tickets/tarefas. P0 = risco jurídico/financeiro imediato. P1 = impacta diretamente a jornada do cliente. P2 = gera retrabalho sem travar a operação. P3/P4 = melhorias futuras.'],
-  ['Matriz BCG (Portfólio Humano)','<strong>Adaptação deste dashboard</strong> da matriz Boston Consulting Group para avaliar carteiras de CSM. Eixo X = tamanho da carteira (benchmark 35 contas, ponto médio da meta 30–40). Eixo Y = Score Consolidado (benchmark 75). Quadrantes: <strong>Estrela</strong> (carteira grande + score alto), <strong>Vaca Leiteira</strong> (carteira grande + score abaixo do benchmark), <strong>Interrogação</strong> (carteira pequena + score alto, capacidade ociosa), <strong>Abacaxi</strong> (carteira pequena + score baixo, intervenção prioritária).'],
+  ['Matriz BCG (Portfólio Humano)','<strong>Adaptação deste dashboard</strong> da matriz Boston Consulting Group para avaliar carteiras de CSM. Eixo X = tamanho da carteira (benchmark 35 contas, ponto médio da meta 30–40). Eixo Y = Score Consolidado (benchmark 75). Quadrantes: <strong>Estrela</strong> (carteira grande + score alto), <strong>Pilar de Operação</strong> (carteira grande + score abaixo do benchmark), <strong>Interrogação</strong> (carteira pequena + score alto, capacidade ociosa), <strong>Abacaxi</strong> (carteira pequena + score baixo, intervenção prioritária).'],
   ['Matriz Eisenhower (Priorização Operacional)','<strong>Adaptação deste dashboard</strong> por cliente: <strong>Urgente</strong> = Risco de Churn Alto/Churn OU Health Score Crítico/Perdido. <strong>Importante</strong> = Status CS = ATIVO. Quadrantes: Fazer Agora (urgente+importante), Planejar (importante, não urgente), Delegar/Acompanhar (urgente, não estratégico), Arquivar (nenhum dos dois).'],
   ['Score Consolidado / Score de Performance Unificado','<strong>Metodologia deste dashboard</strong>, 0–100: 40% Saúde da Carteira (Saudável=1,0 / Atenção=0,5 / Crítico=0,15 / Perdido=0) + 25% SLA de tickets (100 se ≤5 dias, decresce acima disso) + 20% Taxa de Resolução de tickets (100% = atingir meta de 90%) + 15% Risco de Churn controlado (Baixo=1,0 / Médio=0,5 / Alto=0,1 / Churn=0). Componentes sem dado suficiente no período filtrado são excluídos e o peso redistribuído entre os demais — nunca estimado.'],
   ['BSC (Balanced Scorecard)','Metodologia de gestão por 4 perspectivas clássicas (Financeira, Clientes, Processos, Aprendizado), adaptada aqui para 5, incluindo <strong>Internos</strong> (carga operacional). Cada perspectiva recebe status Alinhado / Atenção / Fora da Meta / Sem Dado Suficiente com base nas metas oficiais da NewSun (SLA ≤5d, resolução ≥90%, carteira 30–40 contas, financeiro ativo).'],
