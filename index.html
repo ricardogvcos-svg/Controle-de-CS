@@ -294,8 +294,8 @@
       <label>CSM</label>
       <select class="filter-select" id="filtroCSM"><option value="Todos">Todos</option></select>
     </div>
-    <div class="filter-group">
-      <label>Mês (tickets)</label>
+    <div class="filter-group" id="filtroMesWrap">
+      <label>Mês</label>
       <select class="filter-select" id="filtroMes"><option value="Todos">Todos</option></select>
     </div>
     <div class="filter-tag">
@@ -324,7 +324,7 @@
     <div class="card" style="padding:0">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Colaborador (CSM)</th><th>Tamanho Carteira</th><th>Tickets Coletados</th><th>Score Consolidado</th><th>Classificação BCG</th><th>Ação Recomendada</th></tr></thead>
+          <thead><tr><th>Colaborador (CSM)</th><th>Tamanho Carteira</th><th id="sumarioElencoLabel">Tickets Coletados (todo o período)</th><th>Score Consolidado</th><th>Classificação BCG</th><th>Ação Recomendada</th></tr></thead>
           <tbody id="sumarioElenco"></tbody>
         </table>
       </div>
@@ -564,11 +564,15 @@ function classifyEisenhower(c){
 /* ══════════════════════════════════════════════════════════════════
    RENDER — TABS / NAV
    ══════════════════════════════════════════════════════════════════ */
+// Filtro de mês só faz sentido onde há dado com recorte temporal (tickets).
+// Carteira/BCG/Eisenhower/BSC (aba 2) e Glossário (aba 4) são fotos do momento — não têm "mês".
+const ABAS_COM_FILTRO_MES = ['visao','tickets'];
 function showTab(id, btn){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('active');
+  document.getElementById('filtroMesWrap').style.display = ABAS_COM_FILTRO_MES.includes(id) ? '' : 'none';
 }
 
 function limparFiltros(){
@@ -650,25 +654,27 @@ function renderVisaoGeral(){
   const scores = CSMS.map(c => computeScoreCSM(c));
   const scoreMedio = scores.reduce((a,s)=>a+s.score,0)/scores.length;
   const ultimaData = ultimaDataTicket();
+  const mesSel = state.mes !== 'Todos';
+  const rotuloPeriodo = mesSel ? mesLabel(state.mes) : 'todo o período';
 
   document.getElementById('kpiVisaoGeral').innerHTML = `
     <div class="kpi-card" style="--accent:#CC6E00">
       <div class="kpi-label">1.1 · Carteira Total Consolidada</div>
       <div class="kpi-value">${cart.length}</div>
       <div class="kpi-sub">${ativos} clientes ativos monitorados</div>
-      <div class="kpi-meta">Snapshot de 22/07/2026</div>
+      <div class="kpi-meta">Snapshot de 22/07/2026 · não varia por mês (carteira é foto do momento)</div>
     </div>
     <div class="kpi-card" style="--accent:#072C58">
-      <div class="kpi-label">1.2 · Volume Total de Tickets (PV)</div>
+      <div class="kpi-label">1.2 · Volume de Tickets (PV) ${mesSel?'— '+rotuloPeriodo:''}</div>
       <div class="kpi-value">${tks.length}</div>
-      <div class="kpi-sub">Demandas tratadas no ciclo filtrado</div>
+      <div class="kpi-sub">Demandas tratadas em ${rotuloPeriodo}</div>
       <div class="kpi-meta" id="kpiTicketsMeta">Log detalhado até ${ultimaData||'—'}</div>
     </div>
     <div class="kpi-card" style="--accent:#157F3C">
       <div class="kpi-label">1.3 · Score Médio da Equipe</div>
       <div class="kpi-value">${scoreMedio.toFixed(0)}</div>
       <div class="kpi-sub">Índice geral operacional (0–100)</div>
-      <div class="kpi-meta">Ver fórmula no Glossário (4)</div>
+      <div class="kpi-meta">Sempre histórico completo — ver fórmula no Glossário (4)</div>
     </div>
     <div class="kpi-card" style="--accent:#6D28D9">
       <div class="kpi-label">Resumo Executivo (Painel Consolidado)</div>
@@ -677,29 +683,38 @@ function renderVisaoGeral(){
     </div>
   `;
 
-  // 1.4 — Carga operacional por CSM
-  const maxCart = Math.max(...CSMS.map(c=>carteiraFiltrada(c==state.csm?c:c).length && RAW_CARTEIRA.filter(x=>x.csm===c).length), 1);
+  // 1.4 — Carga operacional por CSM (carteira = foto do momento; tickets do card secundário respeitam o filtro de mês)
+  const maxCart = Math.max(...CSMS.map(c=>RAW_CARTEIRA.filter(x=>x.csm===c).length), 1);
+  const maxTicketsMes = Math.max(...CSMS.map(c=>ticketsFiltrados(c).length), 1);
   document.getElementById('cargaOperacional').innerHTML = CSMS.map(csm => {
     const n = RAW_CARTEIRA.filter(c=>c.csm===csm).length;
     const dentroMeta = n>=30 && n<=40;
+    const tksCsm = ticketsFiltrados(csm).length;
     return `
     <div class="bar-item">
       <div class="bar-info">
         <span class="bar-label" style="color:${CSM_COLOR_TEXT[csm]}">${csm} ${dentroMeta?'<span class=\"badge b-green\">dentro da meta 30–40</span>':'<span class=\"badge b-yellow\">fora da meta 30–40</span>'}</span>
-        <span class="bar-count">${n}</span>
+        <span class="bar-count">${n} contas</span>
       </div>
       <div class="bar-track"><div class="bar-fill" style="width:${n/maxCart*100}%;background:${CSM_COLOR[csm]}"></div></div>
+      <div class="bar-info" style="margin-top:2px">
+        <span class="bar-label" style="font-size:10.5px;color:var(--ns-gray)">Tickets em ${rotuloPeriodo}</span>
+        <span class="bar-count" style="font-size:12px">${tksCsm}</span>
+      </div>
+      <div class="bar-track" style="height:4px"><div class="bar-fill" style="width:${tksCsm/maxTicketsMes*100}%;background:${CSM_COLOR[csm]};opacity:0.5"></div></div>
     </div>`;
   }).join('');
 
-  // 1.5 — Sumário do elenco
+  // 1.5 — Sumário do elenco (Score/BCG = histórico completo · Tickets Coletados respeita o filtro de mês)
+  document.getElementById('sumarioElencoLabel').textContent = mesSel ? `Tickets Coletados (${rotuloPeriodo})` : 'Tickets Coletados (todo o período)';
   document.getElementById('sumarioElenco').innerHTML = CSMS.map(csm => {
     const s = computeScoreCSM(csm);
     const bcg = classifyBCG(s.carteiraSize, s.score);
+    const tksCsm = ticketsFiltrados(csm).length;
     return `<tr>
       <td style="font-weight:700;color:${CSM_COLOR_TEXT[csm]}">${csm}</td>
       <td>${s.carteiraSize}</td>
-      <td>${s.ticketsCount}</td>
+      <td>${tksCsm}</td>
       <td><span style="font-family:var(--font-cond);font-size:18px;font-weight:700;color:${scoreColor(s.score)}">${s.score.toFixed(0)}</span></td>
       <td><span class="badge" style="background:${bcg.cor}1F;color:${bcg.cor};border:1px solid ${bcg.cor}55">${bcg.nome}</span></td>
       <td style="font-size:11.5px;color:var(--ns-gray);max-width:320px">${bcg.acao}</td>
