@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewSun · Dashboard de Governança & Retenção CS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;900&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ── DESIGN TOKENS ──────────────────────────────────────────────────
+     Paleta oficial NewSun Energy (fornecida pelo cliente):
+     Azul Marinho #072C58 · Azul Marinho Institucional #092F5C
+     Laranja Vibrante #FF8A00 · Laranja Claro #FF9923 · Branco #FFFFFF
+     Tema padrão = claro (marca). Tema escuro = fallback para quem prefere
+     dark mode no navegador; usa a mesma marca sobre fundo navy.
+     ─────────────────────────────────────────────────────────────────── */
+  :root {
+    --brand-navy:   #072C58;   /* fundo hero / header / footer — fixo nos dois temas */
+    --brand-navy2:  #092F5C;   /* navy institucional — gradiente do header/footer */
+    --ns-orange:    #FF8A00;   /* laranja vibrante — accent primário */
+    --ns-orange2:   #FF9923;   /* laranja claro — CTA / hover */
+    --ns-orange3:   #CC6E00;   /* laranja escuro — texto sobre claro, bordas */
+    --ns-blue:      #072C58;
+    --ns-blue2:     #092F5C;
+    --ns-blue3:     #051D3A;
+    --ns-page:      #F7F9FC;   /* fundo principal — branco levemente frio */
+    --ns-dark:      #F7F9FC;
+    --ns-dark2:     #EEF2F7;   /* painéis secundários (thead, faixas) */
+    --ns-dark3:     #FFFFFF;   /* cards */
+    --ns-dark4:     #DCE3ED;   /* bordas */
+    --ns-white:     #12233F;   /* texto principal — navy-charcoal, não preto puro */
+    --ns-gray:      #5B6B85;   /* texto secundário */
+    --ns-gray2:     #8C99AD;   /* texto terciário / legendas */
+    --ns-green:     #157F3C;
+    --ns-red:       #D6303C;
+    --ns-yellow:    #A16207;
+    --ns-purple:    #6D28D9;
+    --b-orange-fg:  #CC6E00;   /* texto de badges laranja — escuro sobre claro */
+    --b-blue-fg:    #0B3D73;   /* texto de badges azul — escuro sobre claro */
+    --header-fg:    #FFFFFF;
+    --radius:      10px;
+    --font:        'Barlow', sans-serif;
+    --font-cond:   'Barlow Condensed', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ns-blue: #1B4F8A; --ns-blue2: #1A3A6B; --ns-blue3: #0D2347;
+      --ns-page: #0A0E1A; --ns-dark: #0A0E1A; --ns-dark2: #111827; --ns-dark3: #1C2333; --ns-dark4: #242D3E;
+      --ns-white: #F4F6FA; --ns-gray: #8B95A8; --ns-gray2: #4A5568;
+      --ns-green: #22C55E; --ns-red: #EF4444; --ns-yellow: #EAB308; --ns-purple: #8B5CF6;
+      --b-orange-fg: #F5A623; --b-blue-fg: #6BA4E0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ns-blue: #1B4F8A; --ns-blue2: #1A3A6B; --ns-blue3: #0D2347;
+    --ns-page: #0A0E1A; --ns-dark: #0A0E1A; --ns-dark2: #111827; --ns-dark3: #1C2333; --ns-dark4: #242D3E;
+    --ns-white: #F4F6FA; --ns-gray: #8B95A8; --ns-gray2: #4A5568;
+    --ns-green: #22C55E; --ns-red: #EF4444; --ns-yellow: #EAB308; --ns-purple: #8B5CF6;
+    --b-orange-fg: #F5A623; --b-blue-fg: #6BA4E0;
+  }
+  :root[data-theme="light"] {
+    --ns-blue: #072C58; --ns-blue2: #092F5C; --ns-blue3: #051D3A;
+    --ns-page: #F7F9FC; --ns-dark: #F7F9FC; --ns-dark2: #EEF2F7; --ns-dark3: #FFFFFF; --ns-dark4: #DCE3ED;
+    --ns-white: #12233F; --ns-gray: #5B6B85; --ns-gray2: #8C99AD;
+    --ns-green: #157F3C; --ns-red: #D6303C; --ns-yellow: #A16207; --ns-purple: #6D28D9;
+    --b-orange-fg: #CC6E00; --b-blue-fg: #0B3D73;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--ns-page);
+    color: var(--ns-white);
+    font-family: var(--font);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(7,44,88,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255,138,0,0.05) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    body::before { background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(27,79,138,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(245,166,35,0.08) 0%, transparent 50%); }
+  }
+  :root[data-theme="dark"] body::before { background: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(27,79,138,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 80%, rgba(245,166,35,0.08) 0%, transparent 50%); }
+  .wrap { position: relative; z-index: 1; max-width: 1680px; margin: 0 auto; padding: 0 24px 48px; }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 28px; border-radius: var(--radius);
+    background: linear-gradient(120deg, var(--brand-navy) 0%, var(--brand-navy2) 100%);
+    margin: 20px 0; gap: 16px; flex-wrap: wrap;
+    box-shadow: 0 8px 28px rgba(7,44,88,0.25);
+  }
+  .header, .header .header-text p, .header .update-info { color: var(--header-fg); }
+
+  .header-left { display: flex; align-items: center; gap: 20px; }
+  .logo-mark {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--ns-orange) 0%, var(--ns-orange2) 100%);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-cond); font-weight: 900; font-size: 22px; color: var(--brand-navy);
+    letter-spacing: -1px; box-shadow: 0 0 20px rgba(255,138,0,0.35); flex-shrink: 0;
+  }
+  .header-text h1 { font-family: var(--font-cond); font-size: 24px; font-weight: 900; letter-spacing: 0.5px; color: var(--header-fg); line-height: 1.15; }
+  .header-text h1 span { color: var(--ns-orange2); }
+  .header-text p { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 4px; letter-spacing: 1.5px; text-transform: uppercase; }
+  .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .live-badge {
+    display: flex; align-items: center; gap: 8px; background: rgba(34,197,94,0.16);
+    border: 1px solid rgba(74,222,128,0.4); border-radius: 20px; padding: 6px 14px;
+    font-size: 12px; font-weight: 600; color: #4ADE80; letter-spacing: 1px;
+  }
+  .live-badge::before { content: ''; width: 7px; height: 7px; background: #4ADE80; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+  .update-info { font-size: 11px; color: rgba(255,255,255,0.72); text-align: right; }
+  .update-info strong { color: var(--ns-orange2); display: block; }
+
+  .alert-banner {
+    background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.3); border-radius: var(--radius);
+    padding: 14px 18px; margin-bottom: 20px; font-size: 12.5px; color: var(--ns-white); line-height: 1.6;
+  }
+  .alert-banner strong { color: var(--ns-yellow); }
+  .alert-banner ul { margin: 6px 0 0 18px; }
+  .alert-banner.small { font-size: 11.5px; padding: 10px 14px; }
+
+  .filter-bar {
+    display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
+    background: color-mix(in srgb, var(--brand-navy) 5%, var(--ns-dark3));
+    border: 1px solid var(--ns-dark4); border-top: 3px solid var(--brand-navy);
+    border-radius: var(--radius); padding: 14px 16px;
+    position: sticky; top: 0; z-index: 50; backdrop-filter: blur(6px);
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-group label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ns-gray); }
+  .search-input, .filter-select {
+    background: var(--ns-dark2); border: 1px solid var(--ns-dark4); border-radius: 8px;
+    padding: 9px 14px; color: var(--ns-white); font-family: var(--font); font-size: 13px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input { min-width: 220px; }
+  .search-input:focus, .filter-select:focus { border-color: var(--ns-orange); }
+  .filter-select { cursor: pointer; min-width: 150px; }
+  .filter-select option { background: var(--ns-dark2); }
+  .filter-tag { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.35); color: var(--ns-orange); border-radius: 20px; padding: 5px 12px; font-size: 11.5px; font-weight: 600; }
+  .btn-clear { background: var(--ns-dark4); border: none; border-radius: 8px; padding: 9px 14px; color: var(--ns-white); font-size: 12px; cursor: pointer; font-family: var(--font); font-weight: 600; }
+  .btn-clear:hover { background: var(--ns-orange); color: #FFFFFF; }
+
+  .tabs { display: flex; gap: 4px; background: var(--ns-dark3); border: 1px solid var(--ns-dark4); border-radius: var(--radius); padding: 4px; margin-bottom: 24px; flex-wrap: wrap; }
+  .tab { flex: 1; min-width: 160px; padding: 11px 16px; background: transparent; border: none; border-radius: 7px; color: var(--ns-gray); font-family: var(--font); font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; text-align: center; }
+  .tab:hover { color: var(--ns-white); }
+  .tab.active { background: linear-gradient(135deg, var(--ns-blue) 0%, var(--ns-blue2) 100%); color: #FFFFFF; box-shadow: 0 2px 10px rgba(7,44,88,0.35); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .section-title { font-family: var(--font-cond); font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--ns-orange); margin: 28px 0 16px; display: flex; align-items: center; gap: 10px; }
+  .section-title:first-child { margin-top: 0; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(245,166,35,0.3), transparent); }
+  .section-sub { font-size: 11.5px; color: var(--ns-gray); margin: -12px 0 16px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 8px; }
+  .kpi-card { background: var(--ns-dark3); border: 1px solid var(--ns-dark4); border-radius: var(--radius); padding: 20px 22px 18px; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+  .kpi-card::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--accent, var(--ns-orange)); }
+  .kpi-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ns-gray); margin-bottom: 8px; }
+  .kpi-value { font-family: var(--font-cond); font-size: 40px; font-weight: 900; line-height: 1; color: var(--accent, var(--ns-orange)); letter-spacing: -1px; }
+  .kpi-sub { font-size: 11px; color: var(--ns-gray); margin-top: 6px; }
+  .kpi-meta { font-size: 10px; color: var(--ns-gray2); margin-top: 3px; font-style: italic; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+  @media (max-width: 1100px) { .grid-3, .grid-5 { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 700px) { .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr; } }
+
+  .card { background: var(--ns-dark3); border: 1px solid var(--ns-dark4); border-radius: var(--radius); padding: 22px; overflow: hidden; margin-bottom: 24px; }
+  .card-title { font-family: var(--font-cond); font-size: 12.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--ns-gray); margin-bottom: 6px; padding-bottom: 12px; border-bottom: 1px solid var(--ns-dark4); display:flex; justify-content:space-between; align-items:center; }
+  .card-title small { font-size: 10px; color: var(--ns-gray2); font-weight: 500; text-transform: none; letter-spacing: 0; }
+
+  .bar-list { display: flex; flex-direction: column; gap: 10px; }
+  .bar-item { display: flex; flex-direction: column; gap: 5px; }
+  .bar-info { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .bar-label { font-size: 12px; color: var(--ns-white); font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-count { font-family: var(--font-cond); font-size: 17px; font-weight: 700; color: var(--ns-orange); flex-shrink: 0; }
+  .bar-track { background: var(--ns-dark4); border-radius: 3px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--ns-blue) 0%, var(--ns-orange) 100%); transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--ns-dark4); }
+  thead tr { background: var(--ns-dark2); border-bottom: 2px solid var(--ns-orange); }
+  thead th { padding: 11px 13px; text-align: left; font-family: var(--font-cond); font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ns-gray); white-space: nowrap; cursor: pointer; user-select: none; }
+  thead th:hover { color: var(--ns-orange); }
+  thead th.sorted { color: var(--ns-orange); }
+  tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s; }
+  tbody tr:hover { background: rgba(245,166,35,0.04); }
+  tbody td { padding: 9px 13px; color: var(--ns-white); vertical-align: middle; }
+
+  .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 12px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; white-space:nowrap; }
+  .b-green  { background: rgba(21,127,60,0.13);  color: var(--ns-green); border: 1px solid rgba(21,127,60,0.3); }
+  .b-yellow { background: rgba(161,98,7,0.13);   color: var(--ns-yellow); border: 1px solid rgba(161,98,7,0.3); }
+  .b-orange { background: rgba(204,110,0,0.13);  color: var(--b-orange-fg); border: 1px solid rgba(204,110,0,0.3); }
+  .b-red    { background: rgba(214,48,60,0.13);  color: var(--ns-red); border: 1px solid rgba(214,48,60,0.3); }
+  .b-gray   { background: rgba(91,107,133,0.13); color: var(--ns-gray); border: 1px solid rgba(91,107,133,0.3); }
+  .b-blue   { background: rgba(7,44,88,0.10);    color: var(--b-blue-fg); border: 1px solid rgba(7,44,88,0.3); }
+  .b-purple { background: rgba(109,40,217,0.13); color: var(--ns-purple); border: 1px solid rgba(109,40,217,0.3); }
+  .b-orange-solid { background: rgba(255,138,0,0.13); color: var(--b-orange-fg); border: 1px solid rgba(255,138,0,0.3); }
+
+  .pagination { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--ns-dark2); border-top: 1px solid var(--ns-dark4); font-size: 11.5px; color: var(--ns-gray); flex-wrap: wrap; gap: 10px; }
+  .page-btns { display: flex; gap: 6px; }
+  .page-btn { background: var(--ns-dark4); border: none; border-radius: 6px; padding: 5px 11px; color: var(--ns-white); font-size: 12px; cursor: pointer; font-family: var(--font); }
+  .page-btn:hover, .page-btn.active { background: var(--ns-orange); color: var(--ns-dark); font-weight: 700; }
+  .page-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .csm-selector { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .csm-pill { background: var(--ns-dark3); border: 1.5px solid var(--ns-dark4); border-radius: 24px; padding: 10px 20px; cursor: pointer; font-family: var(--font-cond); font-weight: 700; font-size: 14px; letter-spacing: 0.5px; color: var(--ns-gray); transition: all 0.15s; }
+  .csm-pill:hover { border-color: var(--ns-orange); color: var(--ns-white); }
+  .csm-pill.active { background: linear-gradient(135deg, var(--ns-orange) 0%, var(--ns-orange3) 100%); border-color: transparent; color: var(--ns-dark); }
+
+  .score-ring-wrap { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .score-big { font-family: var(--font-cond); font-size: 64px; font-weight: 900; line-height: 1; }
+  .score-formula { font-size: 10.5px; color: var(--ns-gray2); margin-top: 8px; line-height: 1.5; }
+
+  .bcg-quad { position: relative; width: 100%; aspect-ratio: 1.6/1; background: var(--ns-dark2); border-radius: var(--radius); border: 1px solid var(--ns-dark4); overflow: hidden; }
+  .bcg-axis-x, .bcg-axis-y { position: absolute; background: var(--ns-dark4); }
+  .bcg-axis-x { left: 0; right: 0; top: 50%; height: 1px; }
+  .bcg-axis-y { top: 0; bottom: 0; left: 50%; width: 1px; }
+  .bcg-label { position: absolute; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--ns-gray2); }
+  .bcg-dot { position: absolute; width: 16px; height: 16px; border-radius: 50%; transform: translate(-50%,-50%); border: 2px solid var(--ns-dark); box-shadow: 0 0 0 3px rgba(245,166,35,0.25); cursor: default; }
+  .bcg-dot-label { position: absolute; font-family: var(--font-cond); font-size: 12px; font-weight: 700; white-space: nowrap; transform: translate(-50%, 10px); }
+
+  .eisen-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .eisen-quad { background: var(--ns-dark2); border-radius: var(--radius); border: 1px solid var(--ns-dark4); padding: 14px; min-height: 140px; }
+  .eisen-quad h4 { font-family: var(--font-cond); font-size: 13px; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .eisen-quad .cnt { font-family: var(--font-cond); font-size: 26px; font-weight: 900; }
+  .eisen-quad .desc { font-size: 10.5px; color: var(--ns-gray); margin-bottom: 10px; }
+  .eisen-chip-list { display: flex; flex-wrap: wrap; gap: 5px; max-height: 130px; overflow-y: auto; }
+  .eisen-chip { background: var(--ns-dark4); border-radius: 5px; padding: 3px 8px; font-size: 10px; color: var(--ns-white); }
+
+  .bsc-table td, .bsc-table th { padding: 12px 14px; }
+  .pdi-card { background: var(--ns-dark2); border: 1px solid var(--ns-dark4); border-left: 3px solid var(--ns-orange); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+  .pdi-card .pdi-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
+  .pdi-card .pdi-cliente { font-weight: 700; font-size: 13.5px; }
+  .pdi-card .pdi-texto { font-size: 12px; color: var(--ns-white); line-height: 1.5; }
+  .pdi-card .pdi-meta { font-size: 10.5px; color: var(--ns-gray); margin-top: 6px; }
+
+  .glossario-table td:first-child { font-weight: 700; color: var(--ns-orange); white-space: nowrap; }
+  .glossario-table td:last-child { color: var(--ns-white); line-height: 1.5; }
+
+  .motivo-chip { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 600; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+  .sla-chip { display: inline-block; min-width: 32px; padding: 3px 8px; border-radius: 6px; font-family: var(--font-cond); font-size: 12.5px; font-weight: 700; text-align: center; }
+  .sla-low { background: rgba(21,127,60,0.13); color: var(--ns-green); }
+  .sla-mid { background: rgba(161,98,7,0.13); color: var(--ns-yellow); }
+  .sla-high { background: rgba(204,110,0,0.13); color: var(--b-orange-fg); }
+  .sla-crit { background: rgba(214,48,60,0.13); color: var(--ns-red); }
+
+  .footer { text-align: center; padding: 22px 24px; border-radius: var(--radius); margin: 24px 0 8px; font-size: 11px; letter-spacing: 1px; background: linear-gradient(120deg, var(--brand-navy) 0%, var(--brand-navy2) 100%); color: rgba(255,255,255,0.72); }
+  .footer strong { color: var(--ns-orange2); }
+  .full-row { grid-column: 1 / -1; }
+  .empty-state { text-align: center; padding: 30px; color: var(--ns-gray2); font-size: 12px; font-style: italic; }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--ns-dark4); border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-mark">NS</div>
+      <div class="header-text">
+        <h1>New<span>Sun</span> · Governança & Retenção CS</h1>
+        <p>Carteira · Performance CSM · Tickets Pós-Venda · Governança de Dados</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge" id="liveBadge">CARREGANDO…</div>
+      <div class="update-info">
+        <strong id="ultimo-update"></strong>
+        <span id="fonteInfo">Verificando fonte de dados…</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="alert-banner" id="alertaGeral"></div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Buscar</label>
+      <input class="search-input" type="text" id="buscaInput" placeholder="Cliente, CNPJ, motivo...">
+    </div>
+    <div class="filter-group">
+      <label>CSM</label>
+      <select class="filter-select" id="filtroCSM"><option value="Todos">Todos</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Mês (tickets)</label>
+      <select class="filter-select" id="filtroMes"><option value="Todos">Todos</option></select>
+    </div>
+    <div class="filter-tag">
+      <span class="chip" id="chipResumo"></span>
+      <button class="btn-clear" onclick="limparFiltros()">Limpar filtros</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="visao" onclick="showTab('visao', this)">1 · Visão Geral & Coletivo</button>
+    <button class="tab" data-tab="individual" onclick="showTab('individual', this)">2 · Análise Individual & PDI</button>
+    <button class="tab" data-tab="tickets" onclick="showTab('tickets', this)">3 · Tickets Pós-Venda</button>
+    <button class="tab" data-tab="glossario" onclick="showTab('glossario', this)">4 · Glossário & KPIs</button>
+  </div>
+
+  <!-- ═══════════ TAB 1 — VISÃO GERAL & COLETIVO ═══════════ -->
+  <div id="tab-visao" class="tab-content active">
+    <div class="section-title">1.1 – 1.3 · Indicadores Coletivos</div>
+    <div class="kpi-grid" id="kpiVisaoGeral"></div>
+
+    <div class="section-title">1.4 · Distribuição de Carga Operacional por CSM</div>
+    <div class="section-sub">Completude & importância na carteira — nº de contas sob gestão por colaborador vs. meta de 30–40 clientes/CSM (Guia de Boas Práticas NewSun)</div>
+    <div class="card"><div class="bar-list" id="cargaOperacional"></div></div>
+
+    <div class="section-title">1.5 · Sumário Geral da Performance do Elenco CS</div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Colaborador (CSM)</th><th>Tamanho Carteira</th><th>Tickets Coletados</th><th>Score Consolidado</th><th>Classificação BCG</th><th>Ação Recomendada</th></tr></thead>
+          <tbody id="sumarioElenco"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 2 — ANÁLISE INDIVIDUAL & PDI ═══════════ -->
+  <div id="tab-individual" class="tab-content">
+    <div class="csm-selector" id="csmSelectorIndividual"></div>
+    <div id="individualConteudo"></div>
+  </div>
+
+  <!-- ═══════════ TAB 3 — TICKETS PÓS-VENDA ═══════════ -->
+  <div id="tab-tickets" class="tab-content">
+    <div class="alert-banner small" id="coberturaTicketsBanner"></div>
+
+    <div class="section-title">3.3 · Indicadores Gerais de Tickets</div>
+    <div class="kpi-grid" id="kpiTickets"></div>
+
+    <div class="section-title">3.2 · Responsável / Atuação / Situação</div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Responsável (CSM)</th><th>Tickets</th><th>Ativos</th><th>Reativos</th><th>Fechados</th><th>Abertos</th><th>Taxa Resolução</th><th>SLA Médio</th></tr></thead>
+          <tbody id="tabelaResponsavel"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Top 10 Motivos (Macro)</div>
+        <div class="bar-list" id="barMotivos"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Distribuição de SLA de Resolução</div>
+        <div class="grid-5" id="slaBands" style="margin-bottom:0"></div>
+      </div>
+    </div>
+
+    <div class="section-title">3.4 · Tabela Operacional de Rastreamento</div>
+    <div class="section-sub">Histórico recente e mapeado — clique nos cabeçalhos para ordenar</div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th data-key="dataAbertura">Data Abertura</th>
+              <th data-key="responsavel">Responsável</th>
+              <th data-key="canal">Canal</th>
+              <th data-key="cliente">Cliente</th>
+              <th data-key="motivoMacro">Motivo Macro</th>
+              <th data-key="status">Status</th>
+              <th data-key="dataFecha">Data Fechamento</th>
+              <th data-key="tipo">Tipo</th>
+              <th data-key="sla">SLA</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TAB 4 — GLOSSÁRIO & KPIS ═══════════ -->
+  <div id="tab-glossario" class="tab-content">
+    <div class="section-title">4 · Glossário de Termos, KPIs, Siglas e Ferramentas</div>
+    <div class="section-sub">Definição técnica e contexto de uso na NewSun Energy — inclui a metodologia de cálculo de todos os indicadores deste dashboard</div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table class="glossario-table">
+          <thead><tr><th style="width:220px">Termo / Sigla</th><th>Definição Técnica e Contexto de Uso na NewSun Energy</th></tr></thead>
+          <tbody id="glossarioBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <strong>NEWSUN ENERGY GROUP</strong> · Dashboard de Governança & Retenção CS · Dados locais (CSV exportados em 22/07/2026) · Sem conexão automática com a planilha
+  </div>
+</div>
+
+<script src="ns_dashboard_data.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   NORMALIZAÇÃO E HELPERS DE DADOS
+   ══════════════════════════════════════════════════════════════════ */
+const CSMS = ['Jaqueline','Luciana','Stefany'];
+// Cores vivas — uso decorativo (barras, pontos do BCG, fundo de pill ativo)
+const CSM_COLOR = { Jaqueline:'#FF8A00', Luciana:'#072C58', Stefany:'#157F3C' };
+// Mesmas cores em tom escuro — uso como texto direto sobre fundo claro (contraste AA)
+const CSM_COLOR_TEXT = { Jaqueline:'#B35C00', Luciana:'#072C58', Stefany:'#0F6B32' };
+
+// Dados ativos usados por todo o dashboard. Populados por carregarDados() antes do primeiro render —
+// vêm do JSON publicado pelo pipeline Power Automate + GitHub Action (ao vivo) ou, na ausência dele,
+// do snapshot embutido em ns_dashboard_data.js (modo demonstração/offline).
+let RAW_CARTEIRA = [];
+let RAW_TICKETS = [];
+let DATA_MODE = 'carregando';
+let DATA_TIMESTAMP = null;
+
+function getOportunidade(c){ return (c['OPORTUNIDADE'] || c['Não'] || '').trim(); }
+function getHealth(c){ return (c['HEALTH SCORE']||'').trim() || 'Sem Info'; }
+function getRisco(c){ return (c['RISCO DE CHURN']||'').trim() || 'Sem Info'; }
+function getStatusCS(c){ return (c['STATUS CS']||'').trim() || 'Indefinido'; }
+function getStatusFin(c){ return (c['STATUS FINANCEIRO']||'').trim().toUpperCase() || 'SEM INFO'; }
+
+function parseDataBR(s){
+  if(!s) return null;
+  const m = String(s).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m) return null;
+  return new Date(+m[3], +m[2]-1, +m[1]);
+}
+const MESES_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function mesKey(dataStr){
+  const d = parseDataBR(dataStr);
+  if(!d) return null;
+  return (d.getMonth()+1).toString().padStart(2,'0') + '/' + d.getFullYear();
+}
+function mesLabel(key){
+  const [mm,yyyy] = key.split('/');
+  return MESES_PT[+mm-1] + '/' + yyyy.slice(2);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ESTADO GLOBAL DE FILTROS
+   ══════════════════════════════════════════════════════════════════ */
+const state = { csm: 'Todos', mes: 'Todos', busca: '', csmIndividual: 'Jaqueline', sortKey: null, sortDir: 1, page: 1 };
+const PER_PAGE = 25;
+
+function carteiraFiltrada(csmOverride){
+  const csm = csmOverride || state.csm;
+  const busca = state.busca.toLowerCase();
+  return RAW_CARTEIRA.filter(c => {
+    if(csm !== 'Todos' && c.csm !== csm) return false;
+    if(busca){
+      const txt = [c.CLIENTE, c.CNPJ, c.UC, c.SEGMENTO].join(' ').toLowerCase();
+      if(!txt.includes(busca)) return false;
+    }
+    return true;
+  });
+}
+
+function ticketsFiltrados(csmOverride, mesOverride){
+  const csm = csmOverride || state.csm;
+  const mes = mesOverride || state.mes;
+  const busca = state.busca.toLowerCase();
+  return RAW_TICKETS.filter(t => {
+    if(csm !== 'Todos' && t.responsavel !== csm) return false;
+    if(mes !== 'Todos' && mesKey(t.dataAbertura) !== mes) return false;
+    if(busca){
+      const txt = [t.cliente, t.cnpj, t.motivoMacro, t.motivo].join(' ').toLowerCase();
+      if(!txt.includes(busca)) return false;
+    }
+    return true;
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   METODOLOGIA — SCORE, BCG, EISENHOWER, BSC
+   (fórmulas documentadas na aba Glossário — seção 4)
+   ══════════════════════════════════════════════════════════════════ */
+function healthDist(carteiraArr){
+  const d = { 'Saudável':0, 'Atenção':0, 'Crítico':0, 'Perdido':0, 'Sem Info':0 };
+  carteiraArr.forEach(c => { const h = getHealth(c); d[h] = (d[h]||0)+1; });
+  return d;
+}
+function riscoDist(carteiraArr){
+  const d = { 'Baixo':0, 'Médio':0, 'Alto':0, 'Churn':0, 'Sem Info':0 };
+  carteiraArr.forEach(c => { const r = getRisco(c); d[r] = (d[r]||0)+1; });
+  return d;
+}
+function pct(n,total){ return total ? (n/total*100) : 0; }
+
+function ticketStats(ticketsArr){
+  const total = ticketsArr.length;
+  const fechados = ticketsArr.filter(t=>t.status==='Fechado');
+  const abertos = ticketsArr.filter(t=>t.status==='Aberto');
+  const comSla = fechados.filter(t=>typeof t.sla === 'number');
+  const slaMedio = comSla.length ? comSla.reduce((a,b)=>a+b.sla,0)/comSla.length : null;
+  const taxaResolucao = total ? fechados.length/total*100 : null;
+  return { total, fechados: fechados.length, abertos: abertos.length, slaMedio, taxaResolucao };
+}
+
+// Score Consolidado do CSM (0-100)
+// 40% Saúde da carteira | 25% SLA de tickets (meta ≤5d) | 20% Taxa de resolução (meta ≥90%) | 15% Risco de churn controlado
+function computeScoreCSM(csm){
+  const cart = carteiraFiltrada(csm);
+  const tks = ticketsFiltrados(csm, 'Todos'); // score usa base completa de tickets do CSM, independente do filtro de mês da UI
+  const hd = healthDist(cart);
+  const rd = riscoDist(cart);
+  const n = cart.length || 1;
+  const saudeScore = (hd['Saudável']*1.0 + hd['Atenção']*0.5 + hd['Crítico']*0.15) / n * 100;
+  const churnScore = (rd['Baixo']*1.0 + rd['Médio']*0.5 + rd['Alto']*0.1) / n * 100;
+  const stats = ticketStats(tks);
+  let slaScore = null, resolScore = null;
+  if(stats.slaMedio !== null) slaScore = Math.max(0, Math.min(100, 100 - Math.max(0, stats.slaMedio-5)*12));
+  if(stats.taxaResolucao !== null) resolScore = Math.min(100, (stats.taxaResolucao/90)*100);
+  // Se não houver tickets suficientes, redistribui peso proporcionalmente entre os componentes disponíveis
+  const partes = [
+    { v: saudeScore, w: 0.40 },
+    { v: slaScore,   w: 0.25 },
+    { v: resolScore, w: 0.20 },
+    { v: churnScore, w: 0.15 },
+  ].filter(p => p.v !== null);
+  const wTotal = partes.reduce((a,p)=>a+p.w,0) || 1;
+  const score = partes.reduce((a,p)=>a + p.v*p.w, 0) / wTotal;
+  return { score, saudeScore, slaScore, resolScore, churnScore, carteiraSize: cart.length, ticketsCount: tks.length, stats, hd, rd };
+}
+
+// BCG aplicado à carteira humana — X: tamanho da carteira, Y: score consolidado
+// Benchmark de tamanho = 35 (ponto médio da meta 30-40 do Guia de Boas Práticas)
+// Benchmark de score = 75 (fronteira Verde/Amarelo do Health Score no Fluxo CRM, adaptado)
+const BCG_SIZE_BENCH = 35, BCG_SCORE_BENCH = 75;
+function classifyBCG(size, score){
+  const grande = size >= BCG_SIZE_BENCH;
+  const alto = score >= BCG_SCORE_BENCH;
+  if(grande && alto) return { nome:'Estrela', cor:'#157F3C', acao:'Manter cadência e usar como modelo de replicação para o time.' };
+  if(grande && !alto) return { nome:'Vaca Leiteira', cor:'#072C58', acao:'Carteira grande mas com sinais de atenção — estabilizar saúde antes de crescer mais.' };
+  if(!grande && alto) return { nome:'Interrogação', cor:'#CC6E00', acao:'Carteira enxuta e saudável — tem capacidade ociosa para receber mais contas.' };
+  return { nome:'Abacaxi', cor:'#D6303C', acao:'Carteira pequena e com problemas de saúde — intervenção prioritária do gestor.' };
+}
+
+// Eisenhower por cliente
+function classifyEisenhower(c){
+  const risco = getRisco(c), health = getHealth(c), status = getStatusCS(c);
+  const urgente = ['Alto','Churn'].includes(risco) || ['Crítico','Perdido'].includes(health);
+  const importante = status === 'ATIVO';
+  if(urgente && importante) return 'fazer';
+  if(!urgente && importante) return 'planejar';
+  if(urgente && !importante) return 'delegar';
+  return 'arquivar';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RENDER — TABS / NAV
+   ══════════════════════════════════════════════════════════════════ */
+function showTab(id, btn){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function limparFiltros(){
+  state.csm='Todos'; state.mes='Todos'; state.busca=''; state.page=1;
+  document.getElementById('filtroCSM').value='Todos';
+  document.getElementById('filtroMes').value='Todos';
+  document.getElementById('buscaInput').value='';
+  renderTudo();
+}
+
+function initFiltros(){
+  const selCSM = document.getElementById('filtroCSM');
+  CSMS.forEach(c => { const o=document.createElement('option'); o.value=c; o.textContent=c; selCSM.appendChild(o); });
+  selCSM.addEventListener('change', e => { state.csm = e.target.value; state.page=1; renderTudo(); });
+
+  const meses = [...new Set(RAW_TICKETS.map(t=>mesKey(t.dataAbertura)).filter(Boolean))].sort();
+  const selMes = document.getElementById('filtroMes');
+  meses.forEach(m => { const o=document.createElement('option'); o.value=m; o.textContent=mesLabel(m); selMes.appendChild(o); });
+  selMes.addEventListener('change', e => { state.mes = e.target.value; state.page=1; renderTudo(); });
+
+  document.getElementById('buscaInput').addEventListener('input', e => { state.busca = e.target.value; state.page=1; renderTudo(); });
+
+  document.querySelectorAll('#mainTable thead th[data-key]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.key;
+      if(state.sortKey === key) state.sortDir *= -1; else { state.sortKey = key; state.sortDir = 1; }
+      document.querySelectorAll('#mainTable thead th').forEach(x=>x.classList.remove('sorted'));
+      th.classList.add('sorted');
+      renderTabelaTickets();
+    });
+  });
+}
+
+function renderAlertaGeral(){
+  const dupCnpj = {};
+  RAW_CARTEIRA.forEach(c => { if(c.CNPJ){ (dupCnpj[c.CNPJ] = dupCnpj[c.CNPJ]||new Set()).add(c.csm); } });
+  const violacoes = Object.entries(dupCnpj).filter(([,s])=>s.size>1);
+  const modoTxt = DATA_MODE==='live'
+    ? `<li><strong>Modo ao vivo:</strong> dados atualizados automaticamente via Power Automate + GitHub Action. Última sincronização: <strong>${DATA_TIMESTAMP||'—'}</strong>.</li>`
+    : `<li><strong>Modo demonstração/offline:</strong> não foi possível carregar o JSON ao vivo (<code>data/ns_dashboard_data_live.json</code>) — exibindo o snapshot embutido de <strong>22/07/2026</strong>. Publique o pipeline (Power Automate → GitHub Action) para ativar atualização automática.</li>`;
+  const jaquelineTk = RAW_TICKETS.filter(t=>t.responsavel==='Jaqueline').length;
+  document.getElementById('alertaGeral').innerHTML = `
+    <strong>⚠ Sinalizações de governança de dados:</strong>
+    <ul>
+      ${modoTxt}
+      ${violacoes.length ? `<li><strong>${violacoes.length} cliente(s) aparecem na carteira de mais de um CSM</strong> (${violacoes.map(([cnpj,s])=>`${cnpj}: ${[...s].join(' / ')}`).join('; ')}) — viola a regra "1 cliente = 1 CSM" do Guia de Boas Práticas. Recomenda-se revisão manual.</li>` : ''}
+      <li>Coluna NPS não está preenchida em nenhum registro da carteira atual — não entra no cálculo de Score/BSC até que passe a ser coletada.</li>
+      <li><strong>${jaquelineTk} de ${RAW_TICKETS.length} tickets (${(jaquelineTk/RAW_TICKETS.length*100).toFixed(0)}%)</strong> estão registrados sob a responsável Jaqueline, bem acima de Luciana/Stefany — vale confirmar se reflete a operação real ou um padrão de preenchimento do campo "Responsável" no formulário de tickets.</li>
+    </ul>`;
+}
+
+function renderChipResumo(){
+  const cart = carteiraFiltrada();
+  const tks = ticketsFiltrados();
+  document.getElementById('chipResumo').textContent = `${cart.length} contas · ${tks.length} tickets no filtro atual`;
+}
+
+function renderTudo(){
+  renderChipResumo();
+  renderVisaoGeral();
+  renderIndividual();
+  renderTicketsTab();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TAB 1 — VISÃO GERAL & COLETIVO
+   ══════════════════════════════════════════════════════════════════ */
+function ultimaDataTicket(){
+  const datas = RAW_TICKETS.map(t=>parseDataBR(t.dataAbertura)).filter(Boolean);
+  if(!datas.length) return null;
+  const max = new Date(Math.max(...datas));
+  return max.toLocaleDateString('pt-BR');
+}
+
+function renderVisaoGeral(){
+  const cart = carteiraFiltrada();
+  const tks = ticketsFiltrados();
+  const ativos = cart.filter(c=>getStatusCS(c)==='ATIVO').length;
+  const scores = CSMS.map(c => computeScoreCSM(c));
+  const scoreMedio = scores.reduce((a,s)=>a+s.score,0)/scores.length;
+  const ultimaData = ultimaDataTicket();
+
+  document.getElementById('kpiVisaoGeral').innerHTML = `
+    <div class="kpi-card" style="--accent:#CC6E00">
+      <div class="kpi-label">1.1 · Carteira Total Consolidada</div>
+      <div class="kpi-value">${cart.length}</div>
+      <div class="kpi-sub">${ativos} clientes ativos monitorados</div>
+      <div class="kpi-meta">Snapshot de 22/07/2026</div>
+    </div>
+    <div class="kpi-card" style="--accent:#072C58">
+      <div class="kpi-label">1.2 · Volume Total de Tickets (PV)</div>
+      <div class="kpi-value">${tks.length}</div>
+      <div class="kpi-sub">Demandas tratadas no ciclo filtrado</div>
+      <div class="kpi-meta" id="kpiTicketsMeta">Log detalhado até ${ultimaData||'—'}</div>
+    </div>
+    <div class="kpi-card" style="--accent:#157F3C">
+      <div class="kpi-label">1.3 · Score Médio da Equipe</div>
+      <div class="kpi-value">${scoreMedio.toFixed(0)}</div>
+      <div class="kpi-sub">Índice geral operacional (0–100)</div>
+      <div class="kpi-meta">Ver fórmula no Glossário (4)</div>
+    </div>
+    <div class="kpi-card" style="--accent:#6D28D9">
+      <div class="kpi-label">Resumo Executivo (Painel Consolidado)</div>
+      <div class="kpi-value" style="font-size:28px">96,2%</div>
+      <div class="kpi-sub">Taxa de resolução · SLA médio 4,2d · confere com o log detalhado de tickets</div>
+    </div>
+  `;
+
+  // 1.4 — Carga operacional por CSM
+  const maxCart = Math.max(...CSMS.map(c=>carteiraFiltrada(c==state.csm?c:c).length && RAW_CARTEIRA.filter(x=>x.csm===c).length), 1);
+  document.getElementById('cargaOperacional').innerHTML = CSMS.map(csm => {
+    const n = RAW_CARTEIRA.filter(c=>c.csm===csm).length;
+    const dentroMeta = n>=30 && n<=40;
+    return `
+    <div class="bar-item">
+      <div class="bar-info">
+        <span class="bar-label" style="color:${CSM_COLOR_TEXT[csm]}">${csm} ${dentroMeta?'<span class=\"badge b-green\">dentro da meta 30–40</span>':'<span class=\"badge b-yellow\">fora da meta 30–40</span>'}</span>
+        <span class="bar-count">${n}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${n/maxCart*100}%;background:${CSM_COLOR[csm]}"></div></div>
+    </div>`;
+  }).join('');
+
+  // 1.5 — Sumário do elenco
+  document.getElementById('sumarioElenco').innerHTML = CSMS.map(csm => {
+    const s = computeScoreCSM(csm);
+    const bcg = classifyBCG(s.carteiraSize, s.score);
+    return `<tr>
+      <td style="font-weight:700;color:${CSM_COLOR_TEXT[csm]}">${csm}</td>
+      <td>${s.carteiraSize}</td>
+      <td>${s.ticketsCount}</td>
+      <td><span style="font-family:var(--font-cond);font-size:18px;font-weight:700;color:${scoreColor(s.score)}">${s.score.toFixed(0)}</span></td>
+      <td><span class="badge" style="background:${bcg.cor}1F;color:${bcg.cor};border:1px solid ${bcg.cor}55">${bcg.nome}</span></td>
+      <td style="font-size:11.5px;color:var(--ns-gray);max-width:320px">${bcg.acao}</td>
+    </tr>`;
+  }).join('');
+}
+function scoreColor(s){ if(s>=80) return '#157F3C'; if(s>=60) return '#A16207'; return '#D6303C'; }
+
+/* ══════════════════════════════════════════════════════════════════
+   TAB 2 — ANÁLISE INDIVIDUAL & PDI
+   ══════════════════════════════════════════════════════════════════ */
+const CSM_COLOR_ON = { Jaqueline:'#241300', Luciana:'#FFFFFF', Stefany:'#FFFFFF' };
+function initCsmSelector(){
+  document.getElementById('csmSelectorIndividual').innerHTML = CSMS.map(c =>
+    `<button class="csm-pill ${c===state.csmIndividual?'active':''}" data-csm="${c}" style="${c===state.csmIndividual?`background:${CSM_COLOR[c]};color:${CSM_COLOR_ON[c]}`:''}">${c}</button>`
+  ).join('');
+  document.querySelectorAll('.csm-pill').forEach(btn => {
+    btn.addEventListener('click', () => { state.csmIndividual = btn.dataset.csm; renderIndividual(); });
+  });
+}
+
+function renderIndividual(){
+  document.querySelectorAll('.csm-pill').forEach(btn => {
+    const on = btn.dataset.csm === state.csmIndividual;
+    btn.classList.toggle('active', on);
+    btn.style.background = on ? CSM_COLOR[btn.dataset.csm] : '';
+    btn.style.color = on ? CSM_COLOR_ON[btn.dataset.csm] : '';
+  });
+
+  const csm = state.csmIndividual;
+  const s = computeScoreCSM(csm);
+  const cart = carteiraFiltrada(csm);
+  const ucsPreenchidas = cart.filter(c=>c.UC && c.UC.trim()).length;
+  const bcg = classifyBCG(s.carteiraSize, s.score);
+
+  let html = '';
+
+  // 2.1 + 2.2
+  html += `<div class="section-title">2.1 – 2.2 · Score & Volume de Carteira — ${csm}</div>`;
+  html += `<div class="grid-2">
+    <div class="card">
+      <div class="card-title">2.1 · Score de Performance Unificado <small>Entrega Alinhada</small></div>
+      <div class="score-ring-wrap">
+        <div class="score-big" style="color:${scoreColor(s.score)}">${s.score.toFixed(0)}</div>
+        <div>
+          <div class="bar-item" style="width:220px"><div class="bar-info"><span class="bar-label">Saúde da carteira (40%)</span><span class="bar-count" style="font-size:13px">${fmtOrDash(s.saudeScore)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${s.saudeScore}%"></div></div></div>
+          <div class="bar-item" style="width:220px;margin-top:6px"><div class="bar-info"><span class="bar-label">SLA de tickets (25%)</span><span class="bar-count" style="font-size:13px">${fmtOrDash(s.slaScore)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${s.slaScore||0}%"></div></div></div>
+          <div class="bar-item" style="width:220px;margin-top:6px"><div class="bar-info"><span class="bar-label">Taxa de resolução (20%)</span><span class="bar-count" style="font-size:13px">${fmtOrDash(s.resolScore)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${s.resolScore||0}%"></div></div></div>
+          <div class="bar-item" style="width:220px;margin-top:6px"><div class="bar-info"><span class="bar-label">Risco de churn controlado (15%)</span><span class="bar-count" style="font-size:13px">${fmtOrDash(s.churnScore)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${s.churnScore}%"></div></div></div>
+        </div>
+      </div>
+      <div class="score-formula">Fórmula documentada na aba Glossário (item "Score Consolidado"). Componentes sem dado suficiente no período são excluídos e o peso é redistribuído — não estimados.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">2.2 · Volume da Carteira Ativa <small>Medidores e UCs Vinculadas</small></div>
+      <div class="kpi-grid" style="grid-template-columns:1fr 1fr">
+        <div class="kpi-card" style="--accent:${CSM_COLOR_TEXT[csm]};margin-bottom:0">
+          <div class="kpi-label">Clientes na Carteira</div>
+          <div class="kpi-value">${s.carteiraSize}</div>
+          <div class="kpi-sub">Meta NewSun: 30–40 por CSM</div>
+        </div>
+        <div class="kpi-card" style="--accent:${CSM_COLOR_TEXT[csm]};margin-bottom:0">
+          <div class="kpi-label">UCs / Medidores Vinculados</div>
+          <div class="kpi-value">${ucsPreenchidas}</div>
+          <div class="kpi-sub">${s.carteiraSize-ucsPreenchidas>0?(s.carteiraSize-ucsPreenchidas)+' sem UC registrada':'todas com UC registrada'}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // 2.3 BCG
+  html += `<div class="section-title">2.3 · Posicionamento Matriz BCG <small style="color:var(--ns-gray);font-weight:400;text-transform:none;letter-spacing:0"> — Classificação de Portfólio Humano</small></div>`;
+  html += `<div class="card">
+    <div class="bcg-quad" id="bcgQuad"></div>
+    <div style="margin-top:14px;font-size:12px;color:var(--ns-gray)">
+      <strong style="color:${bcg.cor}">${csm} = ${bcg.nome}.</strong> ${bcg.acao}
+      <br><span style="font-size:10.5px;color:var(--ns-gray2)">Eixo X = tamanho da carteira (benchmark ${BCG_SIZE_BENCH} contas). Eixo Y = Score Consolidado (benchmark ${BCG_SCORE_BENCH}).</span>
+    </div>
+  </div>`;
+
+  // 2.4 Health / Risco
+  html += `<div class="section-title">2.4 · Composição Qualitativa da Carteira</div>`;
+  html += `<div class="grid-2">
+    <div class="card"><div class="card-title">Health Score <small>coluna oficial da planilha</small></div><div class="bar-list">${renderDistBars(s.hd, s.carteiraSize, {'Saudável':'#157F3C','Atenção':'#A16207','Crítico':'#CC6E00','Perdido':'#D6303C','Sem Info':'#5B6B85'})}</div></div>
+    <div class="card"><div class="card-title">Risco de Churn <small>coluna complementar</small></div><div class="bar-list">${renderDistBars(s.rd, s.carteiraSize, {'Baixo':'#157F3C','Médio':'#A16207','Alto':'#CC6E00','Churn':'#D6303C','Sem Info':'#5B6B85'})}</div></div>
+  </div>`;
+
+  // 2.5 Eisenhower
+  const quads = { fazer:[], planejar:[], delegar:[], arquivar:[] };
+  cart.forEach(c => quads[classifyEisenhower(c)].push(c));
+  html += `<div class="section-title">2.5 · Priorização Estratégica Operacional <small style="color:var(--ns-gray);font-weight:400;text-transform:none;letter-spacing:0"> — Matriz Eisenhower</small></div>`;
+  html += `<div class="card"><div class="eisen-grid">
+    ${eisenBlock('Fazer Agora','Urgente + Importante · risco alto/churn ou health crítico em conta ativa','#D6303C',quads.fazer)}
+    ${eisenBlock('Planejar','Importante, não urgente · cadência normal de contato','#157F3C',quads.planejar)}
+    ${eisenBlock('Delegar / Acompanhar','Urgente, não estratégico · conta já não-ativa com pendência','#A16207',quads.delegar)}
+    ${eisenBlock('Arquivar','Nem urgente nem importante · encerrado sem pendência','#5B6B85',quads.arquivar)}
+  </div></div>`;
+
+  // 2.6 BSC
+  html += `<div class="section-title">2.6 · Perspectivas do BSC (Balanced Scorecard)</div>`;
+  html += renderBSC(csm, cart, s);
+
+  // 2.7 PDI
+  html += `<div class="section-title">2.7 · Parecer do Gestor, PDI & Recomendações Estruturadas</div>`;
+  html += renderPDI(csm, cart);
+
+  document.getElementById('individualConteudo').innerHTML = html;
+
+  // desenha BCG depois de inserir no DOM
+  drawBCG();
+}
+function fmtOrDash(v){ return v===null||v===undefined ? '—' : v.toFixed(0); }
+
+function renderDistBars(dist, total, colors){
+  return Object.entries(dist).map(([k,n]) => `
+    <div class="bar-item">
+      <div class="bar-info"><span class="bar-label">${k}</span><span class="bar-count" style="color:${colors[k]}">${n} <span style="font-size:10px;color:var(--ns-gray)">(${pct(n,total).toFixed(0)}%)</span></span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct(n,total)}%;background:${colors[k]}"></div></div>
+    </div>`).join('');
+}
+
+function eisenBlock(titulo, desc, cor, lista){
+  return `<div class="eisen-quad" style="border-top:3px solid ${cor}">
+    <h4 style="color:${cor}">${titulo}</h4>
+    <div class="desc">${desc}</div>
+    <div class="cnt" style="color:${cor}">${lista.length}</div>
+    <div class="eisen-chip-list">${lista.slice(0,30).map(c=>`<span class="eisen-chip" title="${c.CNPJ||''}">${c.CLIENTE}</span>`).join('') || '<span class="empty-state" style="padding:4px">Nenhum cliente neste quadrante</span>'}</div>
+  </div>`;
+}
+
+function renderBSC(csm, cart, s){
+  const finAtivo = cart.filter(c=>getStatusFin(c)==='ATIVO').length;
+  const finPct = pct(finAtivo, cart.length);
+  const clientesOk = s.hd['Saudável'] + s.hd['Atenção'];
+  const clientesPct = pct(clientesOk, cart.length);
+  const procOk = (s.stats.taxaResolucao!==null && s.stats.taxaResolucao>=90) && (s.stats.slaMedio!==null && s.stats.slaMedio<=5);
+  const dentroMeta = s.carteiraSize>=30 && s.carteiraSize<=40;
+  const acaoCount = cart.filter(c=>c['AÇÃO PRIORITÁRIA'] && c['AÇÃO PRIORITÁRIA'].trim()).length;
+
+  const rows = [
+    { persp:'Financeira', foco:`% da carteira com status financeiro ATIVO (adimplente): ${finPct.toFixed(0)}% (${finAtivo}/${cart.length})`, status: statusBadge(finPct>=80?'green':finPct>=60?'yellow':'red') },
+    { persp:'Clientes', foco:`% da carteira Saudável + Atenção (fora de zona crítica): ${clientesPct.toFixed(0)}%`, status: statusBadge(clientesPct>=80?'green':clientesPct>=60?'yellow':'red') },
+    { persp:'Processos', foco:`Taxa de resolução ${fmtPctOrDash(s.stats.taxaResolucao)} (meta ≥90%) · SLA médio ${s.stats.slaMedio!==null?s.stats.slaMedio.toFixed(1)+'d':'—'} (meta ≤5d)`, status: statusBadge(s.stats.taxaResolucao===null?'gray':(procOk?'green':'yellow')) },
+    { persp:'Internos', foco:`Carga operacional: ${s.carteiraSize} contas (meta 30–40/CSM)`, status: statusBadge(dentroMeta?'green':'yellow') },
+    { persp:'Aprendizado', foco:`${acaoCount} ações prioritárias documentadas nas observações da carteira (proxy de aprendizado ativo) — sem histórico de evolução de score ao longo do tempo disponível`, status: statusBadge('gray') },
+  ];
+  return `<div class="card" style="padding:0"><div class="table-wrap"><table class="bsc-table">
+    <thead><tr><th>Perspectiva</th><th>Foco Operacional na Carteira</th><th>Status Alinhamento</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr><td style="font-weight:700">${r.persp}</td><td style="font-size:12px;color:var(--ns-white)">${r.foco}</td><td>${r.status}</td></tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
+function fmtPctOrDash(v){ return v===null?'—':v.toFixed(1)+'%'; }
+function statusBadge(kind){
+  const map = { green:['b-green','Alinhado'], yellow:['b-yellow','Atenção'], red:['b-red','Fora da Meta'], gray:['b-gray','Sem Dado Suficiente'] };
+  const [cls,txt] = map[kind];
+  return `<span class="badge ${cls}">${txt}</span>`;
+}
+
+function renderPDI(csm, cart){
+  const bandaPrazo = { 'Crítico':'7 dias (SLA Crítico)', 'Perdido':'Imediato (SLA Perdido)', 'Atenção':'15 dias (SLA Atenção)', 'Saudável':'Mensal (cadência padrão)', 'Sem Info':'A definir — sem Health Score' };
+  const comAcao = cart.filter(c => (c['AÇÃO PRIORITÁRIA']&&c['AÇÃO PRIORITÁRIA'].trim()) || ['Crítico','Perdido'].includes(getHealth(c)));
+  comAcao.sort((a,b) => {
+    const ordem = {'Perdido':0,'Crítico':1,'Atenção':2,'Saudável':3,'Sem Info':4};
+    return (ordem[getHealth(a)]??9) - (ordem[getHealth(b)]??9);
+  });
+  if(!comAcao.length) return `<div class="card"><div class="empty-state">Nenhuma ação prioritária ou conta crítica/perdida registrada para ${csm} na carteira atual.</div></div>`;
+  return `<div>${comAcao.slice(0,25).map(c => {
+    const h = getHealth(c);
+    const acao = (c['AÇÃO PRIORITÁRIA']&&c['AÇÃO PRIORITÁRIA'].trim()) || (c.OBSERVAÇÕES ? c.OBSERVAÇÕES.slice(0,220)+(c.OBSERVAÇÕES.length>220?'…':'') : 'Sem observação registrada.');
+    return `<div class="pdi-card">
+      <div class="pdi-head">
+        <span class="pdi-cliente">${c.CLIENTE}</span>
+        <span class="badge" style="background:${healthColor(h)}22;color:${healthColor(h)};border:1px solid ${healthColor(h)}55">${h}</span>
+      </div>
+      <div class="pdi-texto"><strong>Recomendação Estruturada (fatos reais):</strong> ${acao}</div>
+      <div class="pdi-meta">Prazo crítico para execução: <strong>${bandaPrazo[h]||'—'}</strong> ${c['PRÓXIMO CONTATO']?(' · Próximo contato: '+c['PRÓXIMO CONTATO']):''}</div>
+    </div>`;
+  }).join('')}</div>${comAcao.length>25?`<div class="empty-state">+ ${comAcao.length-25} outras contas com ação/criticidade registrada (filtre por busca para ver todas)</div>`:''}`;
+}
+function healthColor(h){ return {'Saudável':'#157F3C','Atenção':'#A16207','Crítico':'#CC6E00','Perdido':'#D6303C','Sem Info':'#5B6B85'}[h]||'#5B6B85'; }
+
+function drawBCG(){
+  const el = document.getElementById('bcgQuad');
+  if(!el) return;
+  const w = el.clientWidth, h = el.clientHeight;
+  const maxSize = Math.max(...CSMS.map(c=>RAW_CARTEIRA.filter(x=>x.csm===c).length)) * 1.3;
+  let html = `<div class="bcg-axis-x"></div><div class="bcg-axis-y"></div>
+    <div class="bcg-label" style="top:6px;left:6px">Interrogação</div>
+    <div class="bcg-label" style="top:6px;right:6px">Estrela</div>
+    <div class="bcg-label" style="bottom:6px;left:6px">Abacaxi</div>
+    <div class="bcg-label" style="bottom:6px;right:6px">Vaca Leiteira</div>`;
+  CSMS.forEach(csm => {
+    const s = computeScoreCSM(csm);
+    const x = Math.min(96, Math.max(4, (s.carteiraSize/maxSize)*100));
+    const y = Math.min(96, Math.max(4, 100 - (s.score/100)*100));
+    const isActive = csm === state.csmIndividual;
+    html += `<div class="bcg-dot" style="left:${x}%;top:${y}%;background:${CSM_COLOR[csm]};${isActive?'width:22px;height:22px;box-shadow:0 0 0 5px rgba(255,138,0,0.35)':''}"></div>
+      <div class="bcg-dot-label" style="left:${x}%;top:${y}%;color:${CSM_COLOR_TEXT[csm]}">${csm}</div>`;
+  });
+  el.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TAB 3 — TICKETS PÓS-VENDA
+   ══════════════════════════════════════════════════════════════════ */
+function renderTicketsTab(){
+  const tks = ticketsFiltrados();
+  const stats = ticketStats(tks);
+  const ultimaData = ultimaDataTicket();
+  document.getElementById('coberturaTicketsBanner').innerHTML = `<strong>Cobertura dos dados de tickets:</strong> o log detalhado (aba "Pós Vendas") está completo até <strong>${ultimaData||'—'}</strong>. Tickets após essa data ainda não constam na fonte carregada e aparecem em branco no filtro de mês — não foram estimados.`;
+  document.getElementById('kpiTickets').innerHTML = `
+    <div class="kpi-card" style="--accent:#CC6E00"><div class="kpi-label">Tickets Totais</div><div class="kpi-value">${stats.total}</div><div class="kpi-sub">Volume de demandas tratadas</div></div>
+    <div class="kpi-card" style="--accent:${stats.taxaResolucao!==null&&stats.taxaResolucao>=90?'#157F3C':'#D6303C'}"><div class="kpi-label">Taxa de Resolução</div><div class="kpi-value">${fmtPctOrDash(stats.taxaResolucao)}</div><div class="kpi-sub">Meta da empresa: ≥ 90%</div></div>
+    <div class="kpi-card" style="--accent:${stats.slaMedio!==null&&stats.slaMedio<=5?'#157F3C':'#D6303C'}"><div class="kpi-label">SLA Médio de Resolução</div><div class="kpi-value">${stats.slaMedio!==null?stats.slaMedio.toFixed(1):'—'}</div><div class="kpi-sub">Meta da empresa: ≤ 5 dias</div></div>
+    <div class="kpi-card" style="--accent:#D6303C"><div class="kpi-label">Tickets Abertos</div><div class="kpi-value">${stats.abertos}</div><div class="kpi-sub">Aguardando resolução</div></div>
+  `;
+
+  // 3.2 Responsável / Atuação / Situação
+  document.getElementById('tabelaResponsavel').innerHTML = CSMS.map(csm => {
+    const t = ticketsFiltrados(csm);
+    const st = ticketStats(t);
+    const ativos = t.filter(x=>x.tipo==='Ativo').length, reativos = t.filter(x=>x.tipo==='Reativo').length;
+    return `<tr>
+      <td style="font-weight:700;color:${CSM_COLOR_TEXT[csm]}">${csm}</td>
+      <td>${st.total}</td><td>${ativos}</td><td>${reativos}</td><td>${st.fechados}</td><td>${st.abertos}</td>
+      <td>${fmtPctOrDash(st.taxaResolucao)}</td>
+      <td>${st.slaMedio!==null?st.slaMedio.toFixed(1)+'d':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  // motivos
+  const cnt = {};
+  tks.forEach(t => { const m=t.motivoMacro||'—'; cnt[m]=(cnt[m]||0)+1; });
+  const sortedMotivos = Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const maxM = sortedMotivos[0]?.[1]||1;
+  document.getElementById('barMotivos').innerHTML = sortedMotivos.map(([m,n]) => `
+    <div class="bar-item"><div class="bar-info"><span class="bar-label">${m}</span><span class="bar-count">${n}</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:${n/maxM*100}%"></div></div></div>`).join('') || '<div class="empty-state">Sem tickets no filtro atual</div>';
+
+  // sla bands
+  const bands = [
+    {label:'Excelente', range:'0–1d', min:0,max:1, color:'#157F3C'},
+    {label:'Bom', range:'2–3d', min:2,max:3, color:'#1E9650'},
+    {label:'Aceitável', range:'4–7d', min:4,max:7, color:'#A16207'},
+    {label:'Atenção', range:'8–14d', min:8,max:14, color:'#CC6E00'},
+    {label:'Crítico', range:'>14d', min:15,max:99999, color:'#D6303C'},
+  ];
+  document.getElementById('slaBands').innerHTML = bands.map(b => {
+    const n = tks.filter(t=>typeof t.sla==='number' && t.sla>=b.min && t.sla<=b.max).length;
+    return `<div style="background:${b.color}18;border:1px solid ${b.color}55;border-radius:8px;padding:12px 8px;text-align:center">
+      <div style="font-family:var(--font-cond);font-size:26px;font-weight:900;color:${b.color}">${n}</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${b.color}">${b.label}</div>
+      <div style="font-size:9.5px;color:var(--ns-gray);margin-top:2px">${b.range}</div>
+    </div>`;
+  }).join('');
+
+  renderTabelaTickets();
+}
+
+function renderTabelaTickets(){
+  let tks = [...ticketsFiltrados()];
+  if(state.sortKey){
+    tks.sort((a,b) => {
+      let av=a[state.sortKey], bv=b[state.sortKey];
+      if(state.sortKey==='dataAbertura'||state.sortKey==='dataFecha'){ av=parseDataBR(av)||new Date(0); bv=parseDataBR(bv)||new Date(0); return (av-bv)*state.sortDir; }
+      if(typeof av === 'number' && typeof bv === 'number') return (av-bv)*state.sortDir;
+      return String(av||'').localeCompare(String(bv||''))*state.sortDir;
+    });
+  } else {
+    tks.sort((a,b) => (parseDataBR(b.dataAbertura)||0) - (parseDataBR(a.dataAbertura)||0));
+  }
+  const total = tks.length;
+  const totalPags = Math.max(1, Math.ceil(total/PER_PAGE));
+  if(state.page>totalPags) state.page = totalPags;
+  const inicio = (state.page-1)*PER_PAGE;
+  const pagina = tks.slice(inicio, inicio+PER_PAGE);
+
+  document.getElementById('tableBody').innerHTML = pagina.map(t => `
+    <tr>
+      <td style="white-space:nowrap;color:var(--ns-gray)">${t.dataAbertura||'—'}</td>
+      <td style="color:${CSM_COLOR_TEXT[t.responsavel]||'var(--ns-white)'};font-weight:600">${t.responsavel||'—'}</td>
+      <td><span class="badge b-blue">${t.canal||'—'}</span></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.cliente||'—'}</td>
+      <td><span class="motivo-chip b-orange-solid">${t.motivoMacro||'—'}</span></td>
+      <td><span class="badge ${t.status==='Fechado'?'b-green':'b-red'}">${t.status||'—'}</span></td>
+      <td style="white-space:nowrap;color:var(--ns-gray)">${t.dataFecha||'—'}</td>
+      <td><span class="badge ${t.tipo==='Ativo'?'b-orange-solid':'b-gray'}">${t.tipo||'—'}</span></td>
+      <td>${typeof t.sla==='number' ? `<span class="sla-chip ${slaClass(t.sla)}">${t.sla}d</span>` : '—'}</td>
+    </tr>`).join('') || `<tr><td colspan="9"><div class="empty-state">Nenhum ticket encontrado para este filtro</div></td></tr>`;
+
+  let btns = `<span>${total?inicio+1:0}–${Math.min(inicio+PER_PAGE,total)} de ${total} tickets</span><div class="page-btns">`;
+  btns += `<button class="page-btn" ${state.page<=1?'disabled':''} onclick="mudarPagina(${state.page-1})">‹</button>`;
+  for(let p=Math.max(1,state.page-2); p<=Math.min(totalPags,state.page+2); p++){
+    btns += `<button class="page-btn ${p===state.page?'active':''}" onclick="mudarPagina(${p})">${p}</button>`;
+  }
+  btns += `<button class="page-btn" ${state.page>=totalPags?'disabled':''} onclick="mudarPagina(${state.page+1})">›</button></div>`;
+  document.getElementById('pagination').innerHTML = btns;
+}
+function mudarPagina(p){ state.page = p; renderTabelaTickets(); }
+function slaClass(s){ if(s<=3) return 'sla-low'; if(s<=7) return 'sla-mid'; if(s<=14) return 'sla-high'; return 'sla-crit'; }
+
+/* ══════════════════════════════════════════════════════════════════
+   TAB 4 — GLOSSÁRIO
+   ══════════════════════════════════════════════════════════════════ */
+const GLOSSARIO = [
+  ['CS','Customer Success — área responsável por garantir que o cliente alcance os resultados esperados. Vai além do suporte reativo: é proativa e orientada a valor percebido e retenção.'],
+  ['CSM','Customer Success Manager — colaborador responsável por uma carteira de clientes (neste dashboard: Jaqueline, Luciana, Stefany).'],
+  ['UC','Unidade Consumidora — ponto de fornecimento de energia identificado pela distribuidora; unidade base para cálculo e distribuição de créditos de energia solar.'],
+  ['GD','Geração Distribuída — modelo de geração de energia descentralizado em que a NewSun opera, vendendo créditos de energia solar para pessoas jurídicas.'],
+  ['DISCO','Distribuidora de energia (concessionária local, ex: CPFL, Energisa, Enel, EDP) — responsável pela fatura de consumo do cliente.'],
+  ['CME','Crédito de Energia / cobrança mensal referente à energia compensada pela NewSun junto ao cliente.'],
+  ['Health Score','Classificação de saúde do cliente. Bandas oficiais (Guia de Boas Práticas NewSun): <strong>Saudável</strong> = ativo, pagante, NPS ≥ 8 (ação mensal); <strong>Atenção</strong> = pendência técnica ou NPS 6–7 (plano de ação em 15 dias); <strong>Crítico</strong> = inadimplente ou NPS &lt; 6 (escalação + recuperação em 7 dias); <strong>Perdido</strong> = cancelou ou retirou titularidade (análise de churn imediata).'],
+  ['Risco de Churn','Coluna complementar ao Health Score na planilha de carteira, com valores Baixo / Médio / Alto / Churn — usada nos cálculos de Score e na Matriz Eisenhower deste dashboard.'],
+  ['Churn','Cancelamento/evasão — perda de um cliente ativo, encerramento do contrato de fornecimento de créditos de energia solar. Indicador crítico de saúde da carteira.'],
+  ['SLA','Service Level Agreement — prazo máximo para resposta/resolução de uma demanda. Meta da empresa para tickets de Pós-Venda: ≤ 5 dias de resolução.'],
+  ['NPS','Net Promoter Score — índice de lealdade do cliente (promotores − detratores). <em>Não preenchido em nenhum registro da carteira atual e por isso não entra em nenhum cálculo deste dashboard.</em>'],
+  ['CSAT','Customer Satisfaction Score — nota de satisfação do cliente após um atendimento.'],
+  ['CES','Customer Effort Score — mede o esforço que o cliente precisou fazer para resolver um problema.'],
+  ['Onboarding','Processo de recepção e ativação do cliente após a contratação (0–30 dias). Cadência recomendada: contato semanal.'],
+  ['Energy Club','Programa de benefícios e recompensas da NewSun para clientes ativos.'],
+  ['Handoff','Passagem formal de responsabilidade entre áreas — principal ocorrência: Comercial → CS/Ops após assinatura do contrato.'],
+  ['Cross-sell','Oferta de produtos/serviços complementares a um cliente já ativo (ex: novas UCs).'],
+  ['MRR','Monthly Recurring Revenue — receita recorrente mensal gerada pela base de clientes ativos; impactada diretamente por churn e upgrades.'],
+  ['P0 / P1 / P2 / P3 / P4','Escala de prioridade de tickets/tarefas. P0 = risco jurídico/financeiro imediato. P1 = impacta diretamente a jornada do cliente. P2 = gera retrabalho sem travar a operação. P3/P4 = melhorias futuras.'],
+  ['Matriz BCG (Portfólio Humano)','<strong>Adaptação deste dashboard</strong> da matriz Boston Consulting Group para avaliar carteiras de CSM. Eixo X = tamanho da carteira (benchmark 35 contas, ponto médio da meta 30–40). Eixo Y = Score Consolidado (benchmark 75). Quadrantes: <strong>Estrela</strong> (carteira grande + score alto), <strong>Vaca Leiteira</strong> (carteira grande + score abaixo do benchmark), <strong>Interrogação</strong> (carteira pequena + score alto, capacidade ociosa), <strong>Abacaxi</strong> (carteira pequena + score baixo, intervenção prioritária).'],
+  ['Matriz Eisenhower (Priorização Operacional)','<strong>Adaptação deste dashboard</strong> por cliente: <strong>Urgente</strong> = Risco de Churn Alto/Churn OU Health Score Crítico/Perdido. <strong>Importante</strong> = Status CS = ATIVO. Quadrantes: Fazer Agora (urgente+importante), Planejar (importante, não urgente), Delegar/Acompanhar (urgente, não estratégico), Arquivar (nenhum dos dois).'],
+  ['Score Consolidado / Score de Performance Unificado','<strong>Metodologia deste dashboard</strong>, 0–100: 40% Saúde da Carteira (Saudável=1,0 / Atenção=0,5 / Crítico=0,15 / Perdido=0) + 25% SLA de tickets (100 se ≤5 dias, decresce acima disso) + 20% Taxa de Resolução de tickets (100% = atingir meta de 90%) + 15% Risco de Churn controlado (Baixo=1,0 / Médio=0,5 / Alto=0,1 / Churn=0). Componentes sem dado suficiente no período filtrado são excluídos e o peso redistribuído entre os demais — nunca estimado.'],
+  ['BSC (Balanced Scorecard)','Metodologia de gestão por 4 perspectivas clássicas (Financeira, Clientes, Processos, Aprendizado), adaptada aqui para 5, incluindo <strong>Internos</strong> (carga operacional). Cada perspectiva recebe status Alinhado / Atenção / Fora da Meta / Sem Dado Suficiente com base nas metas oficiais da NewSun (SLA ≤5d, resolução ≥90%, carteira 30–40 contas, financeiro ativo).'],
+  ['WSB','Weighted Score Backlog — fórmula de priorização usada no Plano de Execução 28 Dias do Squad CS: (Impacto Cliente × 3) + (Volume × 2) + (Risco Financeiro × 2) + (Risco Reputacional × 2) + (Facilidade × 1) − Esforço.'],
+  ['RACI','Responsible, Accountable, Consulted, Informed — matriz de responsabilidades usada na governança do Squad CS.'],
+  ['1 Cliente = 1 CSM','Regra de gestão de carteira da NewSun: todos os medidores (UCs) do mesmo cliente/condomínio devem estar sob o mesmo CSM. Violações são sinalizadas automaticamente no banner de alertas deste dashboard.'],
+  ['Atualização Automática (pipeline ao vivo)','Este dashboard busca <code>data/ns_dashboard_data_live.json</code> a cada abertura. Esse arquivo é mantido por um fluxo do Power Automate (lê a planilha Excel no SharePoint e publica um JSON) somado a um GitHub Action agendado (busca esse JSON e o publica no mesmo repositório do dashboard, evitando bloqueio de CORS). Se o arquivo não existir ou a busca falhar, o dashboard cai automaticamente para o snapshot embutido (modo demonstração), sinalizado no banner de alertas.'],
+];
+document.getElementById('glossarioBody').innerHTML = GLOSSARIO.map(([t,d]) => `<tr><td>${t}</td><td>${d}</td></tr>`).join('');
+
+/* ══════════════════════════════════════════════════════════════════
+   CARREGAMENTO DE DADOS — ao vivo (fetch) com fallback embutido
+   ══════════════════════════════════════════════════════════════════ */
+async function carregarDados(){
+  try {
+    const resp = await fetch('data/ns_dashboard_data_live.json', { cache: 'no-store' });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const json = await resp.json();
+    if(!Array.isArray(json.carteira) || !Array.isArray(json.tickets)) throw new Error('formato inesperado');
+    RAW_CARTEIRA = json.carteira;
+    RAW_TICKETS = json.tickets;
+    DATA_MODE = 'live';
+    DATA_TIMESTAMP = json.atualizadoEm || null;
+  } catch(err) {
+    RAW_CARTEIRA = EMBEDDED_CARTEIRA;
+    RAW_TICKETS = EMBEDDED_TICKETS;
+    DATA_MODE = 'embedded';
+    DATA_TIMESTAMP = EMBEDDED_META.geradoEm;
+    console.warn('Dados ao vivo indisponíveis, usando snapshot embutido:', err.message);
+  }
+}
+
+function atualizarBadgeFonte(){
+  const badge = document.getElementById('liveBadge');
+  const fonte = document.getElementById('fonteInfo');
+  const ultimo = document.getElementById('ultimo-update');
+  if(DATA_MODE === 'live'){
+    badge.textContent = 'AO VIVO';
+    badge.style.color = '#157F3C';
+    badge.style.background = 'rgba(21,127,60,0.13)';
+    badge.style.borderColor = 'rgba(21,127,60,0.4)';
+    fonte.textContent = 'Sincronizado via Power Automate + GitHub Action';
+  } else {
+    badge.textContent = 'MODO DEMONSTRAÇÃO';
+    badge.style.color = '#A16207';
+    badge.style.background = 'rgba(161,98,7,0.13)';
+    badge.style.borderColor = 'rgba(161,98,7,0.4)';
+    fonte.textContent = 'Pipeline ao vivo não conectado — exibindo snapshot embutido';
+  }
+  ultimo.textContent = DATA_TIMESTAMP ? `Dados de ${DATA_TIMESTAMP}` : new Date().toLocaleString('pt-BR');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════════════════ */
+(async function init(){
+  await carregarDados();
+  initFiltros();
+  initCsmSelector();
+  atualizarBadgeFonte();
+  renderAlertaGeral();
+  renderTudo();
+  window.addEventListener('resize', drawBCG);
+})();
+</script>
+</body>
+</html>

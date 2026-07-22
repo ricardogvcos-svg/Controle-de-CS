@@ -1,0 +1,56 @@
+name: Sincronizar dados do Dashboard CS
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # a cada 30 minutos — ajuste conforme necessário
+  workflow_dispatch: {}       # permite rodar manualmente pelo botão "Run workflow"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Baixar JSON publicado pelo Power Automate
+        env:
+          SHAREPOINT_JSON_URL: ${{ secrets.SHAREPOINT_JSON_URL }}
+        run: |
+          if [ -z "$SHAREPOINT_JSON_URL" ]; then
+            echo "Secret SHAREPOINT_JSON_URL não configurado. Configure em Settings > Secrets and variables > Actions."
+            exit 0
+          fi
+          curl -sL --fail "$SHAREPOINT_JSON_URL" -o /tmp/novo.json || { echo "Falha ao baixar o JSON. Mantendo versão anterior."; exit 0; }
+
+      - name: Validar JSON antes de substituir
+        run: |
+          if [ ! -f /tmp/novo.json ]; then
+            echo "Nada para validar (download não ocorreu)."
+            exit 0
+          fi
+          python3 -c "
+          import json, sys
+          try:
+              d = json.load(open('/tmp/novo.json'))
+              assert isinstance(d.get('carteira'), list), 'carteira ausente ou não é lista'
+              assert isinstance(d.get('tickets'), list), 'tickets ausente ou não é lista'
+              print(f\"OK: {len(d['carteira'])} contas, {len(d['tickets'])} tickets\")
+          except Exception as e:
+              print(f'JSON inválido, mantendo versão anterior: {e}')
+              sys.exit(1)
+          " && mkdir -p data && cp /tmp/novo.json data/ns_dashboard_data_live.json
+
+      - name: Commitar se houve mudança
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/ns_dashboard_data_live.json 2>/dev/null || true
+          if ! git diff --staged --quiet; then
+            git commit -m "Atualiza dados do dashboard CS ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+            git push
+          else
+            echo "Sem mudanças nos dados."
+          fi
